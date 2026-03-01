@@ -1314,7 +1314,7 @@ function hg.DoTPIK(ply, ent)
         local wrst = ent:LookupBone("ValveBiped.Bip01_L_Ulna")
         local wmat = wrst and ent:GetBoneMatrix(wrst)
         if wrst and wmat then
-            ang:RotateAroundAxis(ang:Forward(), angrotate * 0.5 + 30)
+            ang:RotateAroundAxis(ang:Forward(), angrotate * 0.5 + 00)
             wmat:SetAngles(ang)
             ent:SetBoneMatrix(wrst, wmat)
         end
