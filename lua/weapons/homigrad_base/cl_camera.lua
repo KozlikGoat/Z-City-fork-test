@@ -235,8 +235,10 @@ function SWEP:Camera(eyePos, eyeAng, view, vellen, ply)
 	--if hg_aiminganim:GetBool() then
 		self.k = Lerp(self.Ergonomics * FrameTime() * 2, self.k or 0, zoom and 1 or 0)
 	--else
-	--	self.k = math.Approach(self.k or 0, zoom and 1 or 0, FrameTime() * 3 * self.Ergonomics)
+		--self.k = math.Approach(self.k or 0, zoom and 1 or 0, FrameTime() * 2)
 	--end
+
+	if self.deploy or self.holster then self.k = 0 end
 
 	local k = math.min(1, math.ease.InOutCubic(self.k * 1))
 
