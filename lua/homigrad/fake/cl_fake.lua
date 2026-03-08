@@ -16,13 +16,15 @@ local angle
 
 local hg_coolcamera = ConVarExists("hg_coolcamera") and GetConVar("hg_coolcamera") or CreateConVar("hg_coolcamera", 0, FCVAR_ARCHIVE + FCVAR_REPLICATED, "Cool camera movement", 0, 1)
 local hg_coolcameralerpmult = ConVarExists("hg_coolcameralerpmult") and GetConVar("hg_coolcameralerpmult") or CreateConVar("hg_coolcameralerpmult", 1, FCVAR_ARCHIVE + FCVAR_REPLICATED, "Cool camera movement lerp multiplier", 0, 5)
-
+function GetCoolCameraBool()
+	return hg_coolcamera:GetBool() and !lply:InVehicle()
+end
 realanglelerp = Angle()
 
 hook.Add("InputMouseApply", "fakeCameraAngles", function(cmd, x, y, angle)
 	local tbl = {}
 	
-	if hg_coolcamera:GetBool() then
+	if GetCoolCameraBool() then
 		realangle = realangle or angle
 		angle = realangle
 	end
@@ -48,7 +50,7 @@ hook.Add("InputMouseApply", "fakeCameraAngles", function(cmd, x, y, angle)
 		angle.yaw = angle.yaw - x / 50
 	end
 
-	if hg_coolcamera:GetBool() then
+	if GetCoolCameraBool() then
 		realangle = angle
 		realanglelerp = LerpAngleFT(0.09 * (hg_coolcameralerpmult:GetFloat() or 1), realanglelerp, realangle)
 		angle = realanglelerp + GetViewPunchAngles2() * 1 + GetViewPunchAngles() * 1 + GetViewPunchAngles3() * 1 + GetViewPunchAngles4() * 1
@@ -92,7 +94,7 @@ hook.Add("HG.InputMouseApply", "fakeCameraAngles2", function(tbl)
 
 	ViewPunch4(Angle(y / 50 / 16, -x / 50 / 16, -x / 50 / 1) * 0.1)
 	
-	if hg_coolcamera:GetBool() then
+	if GetCoolCameraBool() then
 		realangle.roll = angle.roll
 		angle = realangle
 	end
@@ -358,7 +360,7 @@ CalcView = function(ply, origin, angles, fov, znear, zfar)
 
 	view = hook.Run("Camera", ply, view.origin, view.angles, view, vector_origin) or view
 	
-	if hg_coolcamera:GetBool() then
+	if GetCoolCameraBool() then
 		view.angles = realangle + GetViewPunchAngles() * 0.2 + vpang
 		view.angles[3] = view.angles[3] - GetViewPunchAngles4()[3]
 	end
