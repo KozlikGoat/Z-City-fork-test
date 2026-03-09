@@ -93,6 +93,8 @@ hook.Add("Org Clear", "Main", function(org)
 	org.LodgedEntities = nil
 	
 	org.dmgstack = {}
+
+	org.SpawnedBrainChunks = nil
 end)
 
 hook.Add("Should Fake Up", "organism", function(ply)

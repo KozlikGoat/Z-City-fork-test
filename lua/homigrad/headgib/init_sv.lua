@@ -83,7 +83,7 @@ local meatModels = {
 	Model("models/props_junk/watermelon01_chunk02a.mdl"),
 }
 local gibRemoveTime = 60 --120
-function SpawnMeatGore(mainent, pos, count, force)
+function SpawnMeatGore(mainent, pos, count, force, scale)
 	force = force or Vector(0,0,0)
 	for i = 1, (count or math.random(8, 10)) do
 		local ent = ents_Create("prop_physics")
@@ -91,7 +91,7 @@ function SpawnMeatGore(mainent, pos, count, force)
 		ent:SetSubMaterial(0, mat)
 		ent:SetPos(pos)
 		ent:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
-		ent:SetModelScale(math.Rand(0.8,1.1))
+		ent:SetModelScale(math.Rand(0.8,1.1) * (scale or 1))
 		ent:SetAngles(AngleRand(-180,180))
 		ent:Activate()
 		ent:Spawn()

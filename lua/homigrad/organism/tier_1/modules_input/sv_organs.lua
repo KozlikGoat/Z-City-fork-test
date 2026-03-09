@@ -97,6 +97,13 @@ input_list.brain = function(org, bone, dmg, dmgInfo)
 		effdata:SetMagnitude(dmg / 10)
 		effdata:SetScale(1)
 		util.Effect("BloodImpact",effdata)
+
+		local ent = hg.GetCurrentCharacter(org.owner)
+		
+		if !ent.organism.SpawnedBrainChunks and math.random(5) == 1 then
+			SpawnMeatGore(ent, dmgPos + dirCool * 5, 3, dirCool * 1000, 0.4)
+			ent.organism.SpawnedBrainChunks = true
+		end
 	end
 
 	if org.brain >= 0.01 and (org.brain - oldDmg) > 0.01 and math.random(3) == 1 then
@@ -107,9 +114,10 @@ input_list.brain = function(org, bone, dmg, dmgInfo)
 			local rag = hg.GetCurrentCharacter(org.owner)
 
 			if IsValid(rag) and rag:IsRagdoll() then
-				local stype = hg.getRandomSpasm()
-				hg.applySpasm(rag, stype)
-				if rag.organism then rag.organism.spasm, rag.organism.spasmType = true, stype end
+				hg.applyFencingToPlayer(org.owner, org) -- looks more appealing anyways
+				--local stype = "rigor"--hg.getRandomSpasm()
+				--hg.applySpasm(rag, stype)
+				--if rag.organism then rag.organism.spasm, rag.organism.spasmType = true, stype end
 			end
 		end)
 	end

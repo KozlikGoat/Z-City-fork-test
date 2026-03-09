@@ -323,9 +323,10 @@ input_list.skull = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricoch
 			local rag = hg.GetCurrentCharacter(org.owner)
 
 			if IsValid(rag) and rag:IsRagdoll() then
-				local stype = hg.getRandomSpasm()
-				hg.applySpasm(rag, stype)
-				if rag.organism then rag.organism.spasm, rag.organism.spasmType = true, stype end
+				hg.applyFencingToPlayer(org.owner, org)
+				--local stype = "rigor"--hg.getRandomSpasm()
+				--hg.applySpasm(rag, stype)
+				--if rag.organism then rag.organism.spasm, rag.organism.spasmType = true, stype end
 			end
 		end)
 	end

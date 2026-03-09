@@ -52,7 +52,7 @@ local fencingLegBones = {
 
 local function getRandomSpasm()
 	local _, stype = hg.WeightedRandomSelect(spasmTypes, 1)
-	print(stype)
+
 	return stype
 end
 
@@ -210,7 +210,7 @@ hook.Add("RagdollDeath", "BrainfuckStart", function(ply, rag)
 		local headshot = hadBrainDamage or hadSkullDamage or hadHeadDamage
 		
 		if headshot and math_random() < CHANCE then
-			local stype = getRandomSpasm()
+			local stype = "rigor"--getRandomSpasm()
 			applySpasm(rag, stype)
 			if rag.organism then rag.organism.spasm, rag.organism.spasmType = true, stype end
 		end
