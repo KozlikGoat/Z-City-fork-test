@@ -28,6 +28,9 @@ colors.previewBorder = Color(255,200,50,255)
 local clr_ico = Color(30, 30, 40, 255)
 local clr_menu = Color(15, 15, 20, 250)
 
+local MENU_PREVIEW_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.clothesCols) or 4
+local FACEMAP_MENU_PREVIEW_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.facemapCols) or 3
+
 local scrollPositions = {}
 
 local function ApplyBaseAppearanceButtonStyle(btn)
@@ -151,7 +154,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     -- Ńĺňęŕ 4x
     local grid = vgui.Create("DGrid", scroll)
     grid:Dock(TOP)
-    grid:SetCols(4)
+    grid:SetCols(MENU_PREVIEW_COLS)
     grid:SetColWide(ScreenScale(53))
     grid:SetRowHeight(ScreenScale(56))
 
@@ -342,8 +345,11 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
 
         function previewModel:LayoutEntity(ent)
             if not IsValid(ent) then return end
+            if ent.__AppearanceFrozenClothes and ent.__AppearanceFrozenClothes == clothesId then return end
             ent:SetSequence(ent:LookupSequence("idle_suitcase"))
             ent:SetCycle(0)
+            ent:SetPlaybackRate(0)
+            ent.AutomaticFrameAdvance = false
             ent:SetAngles(Angle(0, 0, 0))
 
             local modelData = hg.Appearance.PlayerModels[sex] and hg.Appearance.PlayerModels[sex][modelName]
@@ -375,6 +381,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
                 end
             end
             ent:SetColor(Color(255,255,255))
+            ent.__AppearanceFrozenClothes = clothesId
         end
 
         local nameLabel = vgui.Create("DLabel", ico)
@@ -530,7 +537,7 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
     -- Ńĺňęŕ 3x
     local grid = vgui.Create("DGrid", scroll)
     grid:Dock(TOP)
-    grid:SetCols(3)
+    grid:SetCols(FACEMAP_MENU_PREVIEW_COLS)
     grid:SetColWide(ScreenScale(52))
     grid:SetRowHeight(ScreenScale(56))
 
@@ -582,8 +589,11 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
 
         function previewModel:LayoutEntity(ent)
             if not IsValid(ent) then return end
+            if ent.__AppearanceFrozenFacemap and ent.__AppearanceFrozenFacemap == varName then return end
             ent:SetSequence(ent:LookupSequence("idle_suitcase"))
             ent:SetCycle(0)
+            ent:SetPlaybackRate(0)
+            ent.AutomaticFrameAdvance = false
             ent:SetAngles(Angle(0, 0, 0))
 
             local modelData = hg.Appearance.PlayerModels[sex] and hg.Appearance.PlayerModels[sex][modelName]
@@ -607,6 +617,7 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
             end
 
             ent:SetColor(Color(255,255,255))
+            ent.__AppearanceFrozenFacemap = varName
         end
 
         local nameLabel = vgui.Create("DLabel", ico)

@@ -3,11 +3,15 @@ if SERVER then return end
 
 hg.Appearance = hg.Appearance or {}
 
-local SHOWCASE_COLS = 15
+local SHOWCASE_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.showcaseCols) or 15
+local FACEMAP_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.allFacemapsCols) or 15
 
 -- óâåëè÷åííûå èêîíêè
 local ICON_W = 150
 local ICON_H = 310
+local FACEMAP_ICON_SIZE = 128
+local FACEMAP_ICON_SPACING = 6
+local FACEMAP_SECTION_HEADER_PAD = math.floor(FACEMAP_ICON_SIZE * (((hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.allFacemapsHeaderGapFactor) or 0.35)))
 
 --[[
 local ICON_W = 150
@@ -102,9 +106,13 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
         ----------------------------------------------------------------
 
         function mdl:LayoutEntity(ent)
+            if not IsValid(ent) then return end
+            if ent.__AppearanceFrozenShowcase then return end
 
             ent:SetAngles(Angle(0,0,0))
             ent:SetSequence(ent:LookupSequence("idle_suitcase"))
+            ent:SetPlaybackRate(0)
+            ent.AutomaticFrameAdvance = false
 
             local mats = ent:GetMaterials()
 
@@ -146,6 +154,8 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
                 end
 
             end
+
+            ent.__AppearanceFrozenShowcase = true
 
         end
 
@@ -246,8 +256,8 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
     content:Dock(TOP)
     content:SetSpaceY(8)
 
-    local iconSize = 128
-    local iconSpacing = 6
+    local iconSize = FACEMAP_ICON_SIZE
+    local iconSpacing = FACEMAP_ICON_SPACING
     local clothesSelection = editTable.AClothes or {}
 
     local function CreateFacemapPreviewIcon(parent, modelData, variants, varName)
@@ -274,10 +284,13 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
 
         function mdl:LayoutEntity(ent)
             if not IsValid(ent) then return end
+            if ent.__AppearanceFrozenFacemapAll and ent.__AppearanceFrozenFacemapAll == varName then return end
 
             ent:SetAngles(Angle(0, 0, 0))
             ent:SetSequence(ent:LookupSequence("idle_suitcase"))
             ent:SetCycle(0)
+            ent:SetPlaybackRate(0)
+            ent.AutomaticFrameAdvance = false
 
             local mats = ent:GetMaterials()
             local slots = modelData.submatSlots or {}
@@ -311,6 +324,21 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
             end
 
             ent:SetColor(Color(255, 255, 255))
+            ent.__AppearanceFrozenFacemapAll = varName
+        end
+
+        function iconPanel:OnMouseWheeled(delta)
+            if IsValid(scroll) then
+                scroll:OnMouseWheeled(delta)
+                return true
+            end
+        end
+
+        function mdl:OnMouseWheeled(delta)
+            if IsValid(scroll) then
+                scroll:OnMouseWheeled(delta)
+                return true
+            end
         end
 
         local label = vgui.Create("DLabel", iconPanel)
@@ -334,7 +362,9 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
         table.sort(sortedNames)
 
         local section = vgui.Create("DPanel")
-        section:SetSize(math.max(ScrW() - 24, 300), iconSize + 46)
+        local rowsCount = math.max(math.ceil(#sortedNames / FACEMAP_COLS), 1)
+        local rowHeight = iconSize + 18 + iconSpacing
+        section:SetSize(math.max(ScrW() - 24, 300), FACEMAP_SECTION_HEADER_PAD + (rowsCount * rowHeight) + 12)
 
         function section:Paint(w, h)
             draw.RoundedBox(6, 0, 0, w, h, Color(12, 12, 16, 235))
@@ -343,23 +373,23 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
             draw.SimpleText(modelName, "ZCity_Small", 8, 7, Color(230, 230, 230), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
         end
 
-        local row = vgui.Create("DHorizontalScroller", section)
-        row:SetPos(6, 24)
-        row:SetSize(section:GetWide() - 12, iconSize + 20)
-        row:SetOverlap(iconSpacing)
+        local row = vgui.Create("DGrid", section)
+        row:SetPos(6, FACEMAP_SECTION_HEADER_PAD)
+        row:SetCols(FACEMAP_COLS)
+        row:SetColWide(iconSize + iconSpacing)
+        row:SetRowHeight(iconSize + 18 + iconSpacing)
 
         function section:Think()
             if not IsValid(scroll) then return end
             local targetW = math.max(scroll:GetWide() - 10, 300)
             if self:GetWide() ~= targetW then
                 self:SetWide(targetW)
-                row:SetWide(targetW - 12)
             end
         end
 
         for _, varName in ipairs(sortedNames) do
             local icon = CreateFacemapPreviewIcon(section, modelData, variants, varName)
-            row:AddPanel(icon)
+            row:AddItem(icon)
         end
 
         content:Add(section)
