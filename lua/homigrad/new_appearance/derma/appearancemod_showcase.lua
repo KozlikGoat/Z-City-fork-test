@@ -201,13 +201,13 @@ local function ApplyFacemapCameraBySex(mdl, isFemale)
 
     -- FACEMAP_CAMERA_MALE_START
     local maleCamPos = Vector(45, 2, 66)
-    local maleLookAt = Vector(7, 1, 66)
+    local maleLookAt = Vector(7, 2, 64)
     local maleFOV = 20
     -- FACEMAP_CAMERA_MALE_END
 
     -- FACEMAP_CAMERA_FEMALE_START
     local femaleCamPos = Vector(45, 2, 63)
-    local femaleLookAt = Vector(7, 1, 63)
+    local femaleLookAt = Vector(7, 2, 63)
     local femaleFOV = 20
     -- FACEMAP_CAMERA_FEMALE_END
 
