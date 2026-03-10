@@ -741,8 +741,10 @@ hook.Add("HUDPaint","afflictionlist",function()
 end)
 
 -- Now playable :steamhappy:
---[[if game.SinglePlayer() then
+-- No. fuc kyouy
+if game.SinglePlayer() then
 	hook.Add("HUDPaint","Exit the singleplayer",function()
-		draw.SimpleText("Z-City is not for SINGLEPLAYER server, in map select change green SINGLEPLAYER to 2 players or any.", "HomigradFontMedium",ScrW()/2,ScrH()/2,nil,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+		draw.SimpleText("Z-City is not meant to be played in singleplayer, in map selection menu change SINGLEPLAYER (green button top right corner) to 2 players or any.", "HomigradFontMedium", ScrW() / 2,ScrH() / 2, nil, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		draw.SimpleText("A lot of stuff won't work and we won't provide any fixes to singleplayer EVER", "HomigradFontMedium", ScrW() / 2,ScrH() * 7 / 12, nil,TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 	end)
-end]]
+end
