@@ -14,8 +14,8 @@ hg.PointShop = hg.PointShop or {}
 -- НЕ переопределяем PLUGIN.Items
 
 hg.Appearance.MenuPerf = hg.Appearance.MenuPerf or {
-    showcaseCols = 15,
-    allFacemapsCols = 15,
+    showcaseCols = 14,
+    allFacemapsCols = 14,
     allFacemapsHeaderGapFactor = 0.43,
     clothesCols = 4,
     facemapCols = 3
@@ -1083,4 +1083,3 @@ hook.Add("ZPointshopLoaded", "CustomAppearance_AddBodygroups", function()
 end)
 
 print("[ZCityAppearanceMod] Дополнение загружено!")
-
