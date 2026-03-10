@@ -753,6 +753,24 @@ end
 -- No custom Think needed; base melee handles attack ticks
 
 if SERVER then
+    -- Prevent the currently strangled ragdoll from physically colliding with the strangler.
+    hook.Add("ShouldCollide", "FiberwireNoCollideStranglerAndVictim", function(ent1, ent2)
+        if not IsValid(ent1) or not IsValid(ent2) then return end
+
+        local rag, ply
+        if ent1:IsRagdoll() and ent2:IsPlayer() then
+            rag, ply = ent1, ent2
+        elseif ent2:IsRagdoll() and ent1:IsPlayer() then
+            rag, ply = ent2, ent1
+        else
+            return
+        end
+
+        if rag.Strangler == ply then
+            return false
+        end
+    end)
+
     -- block fake controls while strangled
     hook.Add("CanControlFake", "FiberwireStrangleLock", function(ply, rag)
         local r = ply and ply.FakeRagdoll
