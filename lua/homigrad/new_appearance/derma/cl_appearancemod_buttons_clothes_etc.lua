@@ -40,6 +40,32 @@ local function ApplyBaseAppearanceButtonStyle(btn)
     end
 end
 
+local function ApplyFacemapCamera(previewModel, isFemale)
+    if not IsValid(previewModel) then return end
+
+    -- FACEMAP_CAMERA_MALE_START
+    local maleCamPos = Vector(45, 2, 66)
+    local maleLookAt = Vector(7, 1, 66)
+    local maleFOV = 20
+    -- FACEMAP_CAMERA_MALE_END
+
+    -- FACEMAP_CAMERA_FEMALE_START
+    local femaleCamPos = Vector(45, 2, 63)
+    local femaleLookAt = Vector(7, 1, 63)
+    local femaleFOV = 20
+    -- FACEMAP_CAMERA_FEMALE_END
+
+    if isFemale then
+        previewModel:SetCamPos(femaleCamPos)
+        previewModel:SetLookAt(femaleLookAt)
+        previewModel:SetFOV(femaleFOV)
+    else
+        previewModel:SetCamPos(maleCamPos)
+        previewModel:SetLookAt(maleLookAt)
+        previewModel:SetFOV(maleFOV)
+    end
+end
+
 -- Ôóíęöč˙ ńîçäŕíč˙ ńňčëčçîâŕííîăî ńęđîëëŕ (ĺńëč ĺ¸ íĺň â îđčăčíŕëĺ)
 if not CreateStyledScrollPanel then
     function CreateStyledScrollPanel(parent)
@@ -169,6 +195,15 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         colorPickerBtn:SetSize(ScreenScale(70), ScreenScale(28))
         colorPickerBtn:SetText("")
 
+        local paletteHeaderBtn = vgui.Create("DImageButton", menu)
+        paletteHeaderBtn:SetImage("icon16/palette.png")
+        paletteHeaderBtn:SetSize(16, 16)
+        paletteHeaderBtn:SetTooltip("Open color palette")
+        function paletteHeaderBtn:Think()
+            if not IsValid(menu) or not IsValid(menu.btnClose) then return end
+            self:SetPos(menu.btnClose:GetX() - self:GetWide() - 4, 2)
+        end
+
         local currentColor = onSelect and onSelect.getCurrentColor and onSelect.getCurrentColor() or Color(255,255,255)
 
         function colorPickerBtn:Paint(w, h)
@@ -236,6 +271,12 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
             end
             function closeBtn:DoClick() colorMenu:Close() end
         end
+
+        function paletteHeaderBtn:DoClick()
+            if IsValid(colorPickerBtn) then
+                colorPickerBtn:DoClick()
+            end
+        end
     end
 
     -- Ďîëó÷ŕĺě ňĺęóůčĺ ňĺęńňóđű čç appearanceTable
@@ -265,6 +306,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         previewModel:Dock(FILL)
         previewModel:DockMargin(2, 2, 2, 2)
         previewModel:SetModel(modelPath)
+        previewModel:SetAnimated(false)
 
         -- Íŕńňđîéęŕ ęŕěĺđű â çŕâčńčěîńňč îň ÷ŕńňč ňĺëŕ
         local camPos, lookAt, fov
@@ -301,6 +343,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         function previewModel:LayoutEntity(ent)
             if not IsValid(ent) then return end
             ent:SetSequence(ent:LookupSequence("idle_suitcase"))
+            ent:SetCycle(0)
             ent:SetAngles(Angle(0, 0, 0))
 
             local modelData = hg.Appearance.PlayerModels[sex] and hg.Appearance.PlayerModels[sex][modelName]
@@ -521,14 +564,8 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
         previewModel:Dock(FILL)
         previewModel:DockMargin(2, 2, 2, 2)
         previewModel:SetModel(modelPath)
-
-        -- ÍŔŃŇĐÎÉĘŔ ĘŔĚĹĐŰ ÄËß ĎĐĹÄĎĐÎŃĚÎŇĐŔ ËČÖŔ
-        -- Çíŕ÷ĺíč˙ ďîäîáđŕíű äë˙ ćĺíńęčő ěîäĺëĺé. Äë˙ ěóćńęčő (îíč íĺěíîăî íčćĺ) íóćíű čçěĺíĺíč˙.
-        -- Đĺęîěĺíäóĺěűĺ çíŕ÷ĺíč˙ äë˙ ćĺíůčí: CamPos(40,0,60), LookAt(7,1,63), FOV(20)
-        previewModel:SetCamPos(Vector(45, 2, 63))  -- X, Y, Z ďîçčöč˙ ęŕěĺđű
-        previewModel:SetLookAt(Vector(7, 1, 63))  -- ňî÷ęŕ, íŕ ęîňîđóţ ńěîňđčň ęŕěĺđŕ
-        previewModel:SetFOV(20)                    -- óăîë îáçîđŕ
-
+        previewModel:SetAnimated(false)
+        ApplyFacemapCamera(previewModel, sex == 2)
 
         previewModel:SetDirectionalLight(BOX_RIGHT, Color(255, 0, 0))
         previewModel:SetDirectionalLight(BOX_LEFT, Color(125, 155, 255))
@@ -546,6 +583,7 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
         function previewModel:LayoutEntity(ent)
             if not IsValid(ent) then return end
             ent:SetSequence(ent:LookupSequence("idle_suitcase"))
+            ent:SetCycle(0)
             ent:SetAngles(Angle(0, 0, 0))
 
             local modelData = hg.Appearance.PlayerModels[sex] and hg.Appearance.PlayerModels[sex][modelName]
@@ -892,7 +930,7 @@ local function ModifyAppearanceMenu(panel)
     if not IsValid(panel.ShowcaseBtn) then
         local showcaseBtn = vgui.Create("DButton", panel)
         showcaseBtn:SetText("SHOWCASE")
-        showcaseBtn:SetSize(ScreenScale(100), ScreenScale(16))
+        showcaseBtn:SetSize(math.floor(ScreenScale(70)), math.floor(ScreenScale(11)))
         ApplyBaseAppearanceButtonStyle(showcaseBtn)
         function showcaseBtn:Think()
             if not IsValid(panel) then return end
@@ -908,15 +946,14 @@ local function ModifyAppearanceMenu(panel)
     if not IsValid(panel.AllFacemapsBtn) then
         local allFacemapsBtn = vgui.Create("DButton", panel)
         allFacemapsBtn:SetText("ALL_FACEMAPS")
-        allFacemapsBtn:SetSize(ScreenScale(100), ScreenScale(16))
+        allFacemapsBtn:SetSize(math.floor(ScreenScale(70)), math.floor(ScreenScale(11)))
         ApplyBaseAppearanceButtonStyle(allFacemapsBtn)
         function allFacemapsBtn:Think()
             if not IsValid(panel) then return end
-            local margin = ScreenScale(6)
             local spacing = ScreenScale(4)
             local rightButton = panel.ShowcaseBtn
             if not IsValid(rightButton) then return end
-            self:SetPos(rightButton:GetX() - self:GetWide() - spacing, panel:GetTall() - self:GetTall() - margin)
+            self:SetPos(rightButton:GetX(), rightButton:GetY() - self:GetTall() - spacing)
         end
         function allFacemapsBtn:DoClick()
             if hg.Appearance.OpenAllFacemapsMenu then

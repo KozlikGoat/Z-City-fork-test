@@ -79,6 +79,7 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
         ----------------------------------------------------------------
         --                ÊÀÌÅÐÀ ÈÊÎÍÊÈ (ÐÅÄÀÊÒÈÐÓÉ ÇÄÅÑÜ)
         ----------------------------------------------------------------
+            ent:SetCycle(0)
         -- Åñëè ìîäåëü ñëèøêîì ìàëåíüêàÿ / áîëüøàÿ — ìåíÿé çíà÷åíèÿ
         -- CamPos = ðàññòîÿíèå êàìåðû
         -- LookAt = òî÷êà êóäà êàìåðà ñìîòðèò
@@ -195,6 +196,32 @@ local function GetFacemapVariantsForModel(modelPath)
     return combinedVariants
 end
 
+local function ApplyFacemapCameraBySex(mdl, isFemale)
+    if not IsValid(mdl) then return end
+
+    -- FACEMAP_CAMERA_MALE_START
+    local maleCamPos = Vector(45, 2, 66)
+    local maleLookAt = Vector(7, 1, 66)
+    local maleFOV = 20
+    -- FACEMAP_CAMERA_MALE_END
+
+    -- FACEMAP_CAMERA_FEMALE_START
+    local femaleCamPos = Vector(45, 2, 63)
+    local femaleLookAt = Vector(7, 1, 63)
+    local femaleFOV = 20
+    -- FACEMAP_CAMERA_FEMALE_END
+
+    if isFemale then
+        mdl:SetCamPos(femaleCamPos)
+        mdl:SetLookAt(femaleLookAt)
+        mdl:SetFOV(femaleFOV)
+    else
+        mdl:SetCamPos(maleCamPos)
+        mdl:SetLookAt(maleLookAt)
+        mdl:SetFOV(maleFOV)
+    end
+end
+
 function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
     local editTable = appearanceTable or hg.Appearance.CurrentEditTable
     if not editTable then return end
@@ -215,106 +242,132 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
     local scroll = vgui.Create("DScrollPanel", frame)
     scroll:Dock(FILL)
 
-    local iconSize = 140
-    local iconPadding = 8
-    local cols = math.max(1, math.floor((ScrW() - iconPadding * 2) / (iconSize + iconPadding)))
+    local content = vgui.Create("DIconLayout", scroll)
+    content:Dock(TOP)
+    content:SetSpaceY(8)
 
-    local grid = vgui.Create("DGrid", scroll)
-    grid:Dock(TOP)
-    grid:SetCols(cols)
-    grid:SetColWide(iconSize + iconPadding)
-    grid:SetRowHeight(iconSize + 22 + iconPadding)
+    local iconSize = 128
+    local iconSpacing = 6
+    local clothesSelection = editTable.AClothes or {}
 
-    local clothesSelection = (editTable.AClothes or {})
+    local function CreateFacemapPreviewIcon(parent, modelData, variants, varName)
+        local iconPanel = vgui.Create("DPanel", parent)
+        iconPanel:SetSize(iconSize, iconSize + 18)
 
-    local function BuildAllIconsForModel(modelName, modelData)
+        function iconPanel:Paint(w, h)
+            draw.RoundedBox(6, 0, 0, w, h, Color(20, 20, 20, 245))
+            surface.SetDrawColor(70, 70, 90, 255)
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
+        end
+
+        local mdl = vgui.Create("DModelPanel", iconPanel)
+        mdl:SetPos(2, 2)
+        mdl:SetSize(iconSize - 4, iconSize - 4)
+        mdl:SetModel(modelData.mdl)
+        mdl:SetAnimated(false)
+        ApplyFacemapCameraBySex(mdl, modelData.sex and true or false)
+        mdl:SetDirectionalLight(BOX_RIGHT, Color(255, 0, 0))
+        mdl:SetDirectionalLight(BOX_LEFT, Color(125, 155, 255))
+        mdl:SetDirectionalLight(BOX_FRONT, Color(160, 160, 160))
+        mdl:SetDirectionalLight(BOX_BACK, Color(0, 0, 0))
+        mdl:SetAmbientLight(Color(50, 50, 50))
+
+        function mdl:LayoutEntity(ent)
+            if not IsValid(ent) then return end
+
+            ent:SetAngles(Angle(0, 0, 0))
+            ent:SetSequence(ent:LookupSequence("idle_suitcase"))
+            ent:SetCycle(0)
+
+            local mats = ent:GetMaterials()
+            local slots = modelData.submatSlots or {}
+            local clothesTable = hg.Appearance.Clothes[modelData.sex and 2 or 1] or {}
+
+            local function ApplyBySlot(slotName, clothesId)
+                local matName = slots[slotName]
+                if not matName then return end
+
+                local texturePath = clothesTable[clothesId or ""] or clothesTable.normal or ""
+                for i, mat in ipairs(mats) do
+                    if mat == matName then
+                        ent:SetSubMaterial(i - 1, texturePath)
+                        break
+                    end
+                end
+            end
+
+            ApplyBySlot("main", clothesSelection.main)
+            ApplyBySlot("pants", clothesSelection.pants)
+            ApplyBySlot("boots", clothesSelection.boots)
+
+            local slotMap = variants[varName] or {}
+            for slotMaterial, texturePath in pairs(slotMap) do
+                for i, matName in ipairs(mats) do
+                    if matName == slotMaterial then
+                        ent:SetSubMaterial(i - 1, texturePath)
+                        break
+                    end
+                end
+            end
+
+            ent:SetColor(Color(255, 255, 255))
+        end
+
+        local label = vgui.Create("DLabel", iconPanel)
+        label:Dock(BOTTOM)
+        label:SetTall(16)
+        label:SetText(varName)
+        label:SetFont("ZCity_Tiny")
+        label:SetContentAlignment(5)
+        label:SetTextColor(Color(255, 255, 255))
+
+        return iconPanel
+    end
+
+    local function BuildModelSection(modelName, modelData)
         if not modelData or not modelData.mdl then return end
 
-        local modelPath = modelData.mdl
-        local variants = GetFacemapVariantsForModel(modelPath)
+        local variants = GetFacemapVariantsForModel(modelData.mdl)
         if table.IsEmpty(variants) then return end
 
         local sortedNames = table.GetKeys(variants)
         table.sort(sortedNames)
 
-        for _, varName in ipairs(sortedNames) do
-            local panel = vgui.Create("DPanel")
-            panel:SetSize(iconSize, iconSize + 22)
+        local section = vgui.Create("DPanel")
+        section:SetSize(math.max(ScrW() - 24, 300), iconSize + 46)
 
-            function panel:Paint(w, h)
-                draw.RoundedBox(6, 0, 0, w, h, Color(20, 20, 20, 245))
-                surface.SetDrawColor(70, 70, 90, 255)
-                surface.DrawOutlinedRect(0, 0, w, h, 1)
-            end
-
-            local mdl = vgui.Create("DModelPanel", panel)
-            mdl:SetPos(2, 2)
-            mdl:SetSize(iconSize - 4, iconSize - 4)
-            mdl:SetModel(modelPath)
-            mdl:SetCamPos(Vector(45, 2, 63))
-            mdl:SetLookAt(Vector(7, 1, 63))
-            mdl:SetFOV(20)
-            mdl:SetDirectionalLight(BOX_RIGHT, Color(255, 0, 0))
-            mdl:SetDirectionalLight(BOX_LEFT, Color(125, 155, 255))
-            mdl:SetDirectionalLight(BOX_FRONT, Color(160, 160, 160))
-            mdl:SetDirectionalLight(BOX_BACK, Color(0, 0, 0))
-            mdl:SetAmbientLight(Color(50, 50, 50))
-
-            function mdl:LayoutEntity(ent)
-                if not IsValid(ent) then return end
-
-                ent:SetAngles(Angle(0, 0, 0))
-                ent:SetSequence(ent:LookupSequence("idle_suitcase"))
-
-                local mats = ent:GetMaterials()
-                local slots = modelData.submatSlots or {}
-
-                local function ApplyBySlot(slotName, clothesId)
-                    local matName = slots[slotName]
-                    if not matName then return end
-
-                    local clothesTable = hg.Appearance.Clothes[modelData.sex and 2 or 1] or {}
-                    local texturePath = clothesTable[clothesId or ""] or clothesTable.normal or ""
-                    for i, mat in ipairs(mats) do
-                        if mat == matName then
-                            ent:SetSubMaterial(i - 1, texturePath)
-                            break
-                        end
-                    end
-                end
-
-                ApplyBySlot("main", clothesSelection.main)
-                ApplyBySlot("pants", clothesSelection.pants)
-                ApplyBySlot("boots", clothesSelection.boots)
-
-                local slotMap = variants[varName] or {}
-                for slotMaterial, texturePath in pairs(slotMap) do
-                    for i, matName in ipairs(mats) do
-                        if matName == slotMaterial then
-                            ent:SetSubMaterial(i - 1, texturePath)
-                            break
-                        end
-                    end
-                end
-
-                ent:SetColor(Color(255, 255, 255))
-            end
-
-            local label = vgui.Create("DLabel", panel)
-            label:Dock(BOTTOM)
-            label:SetTall(20)
-            label:SetText(modelName .. " | " .. varName)
-            label:SetFont("ZCity_Tiny")
-            label:SetContentAlignment(5)
-            label:SetTextColor(Color(255, 255, 255))
-
-            grid:AddItem(panel)
+        function section:Paint(w, h)
+            draw.RoundedBox(6, 0, 0, w, h, Color(12, 12, 16, 235))
+            surface.SetDrawColor(70, 70, 90, 200)
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
+            draw.SimpleText(modelName, "ZCity_Small", 8, 7, Color(230, 230, 230), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
         end
+
+        local row = vgui.Create("DHorizontalScroller", section)
+        row:SetPos(6, 24)
+        row:SetSize(section:GetWide() - 12, iconSize + 20)
+        row:SetOverlap(iconSpacing)
+
+        function section:Think()
+            if not IsValid(scroll) then return end
+            local targetW = math.max(scroll:GetWide() - 10, 300)
+            if self:GetWide() ~= targetW then
+                self:SetWide(targetW)
+                row:SetWide(targetW - 12)
+            end
+        end
+
+        for _, varName in ipairs(sortedNames) do
+            local icon = CreateFacemapPreviewIcon(section, modelData, variants, varName)
+            row:AddPanel(icon)
+        end
+
+        content:Add(section)
     end
 
     for _, sex in ipairs({1, 2}) do
         for modelName, modelData in SortedPairs(hg.Appearance.PlayerModels[sex] or {}) do
-            BuildAllIconsForModel(modelName, modelData)
+            BuildModelSection(modelName, modelData)
         end
     end
 end
