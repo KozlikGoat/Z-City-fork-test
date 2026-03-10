@@ -575,6 +575,23 @@ function SWEP:CustomThink()
     local rag = self.StrangleRag
     if not self:GetStrangling() then return end
 
+        if IsValid(self.NPCVictim) then
+        local npc = self.NPCVictim
+        if not npc:Alive() then
+            StopStrangle(self)
+            return
+        end
+
+        local targetPos = owner:GetShootPos() + owner:GetAimVector() * 55
+        npc:SetLastPosition(targetPos)
+        npc:SetSchedule(SCHED_FORCED_GO_RUN)
+
+        if npc:Health() > 0 then
+            npc:SetHealth(math.max(npc:Health() - FrameTime() * 12, 0))
+        end
+        return
+    end
+
     -- stop if ragdoll vanished
     if not IsValid(rag) or not rag:IsRagdoll() then
         StopStrangle(self) -- clean state
