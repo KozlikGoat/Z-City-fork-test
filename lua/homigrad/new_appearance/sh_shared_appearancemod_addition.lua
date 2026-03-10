@@ -13,6 +13,14 @@ hg.Appearance = hg.Appearance or {}
 hg.PointShop = hg.PointShop or {}
 -- НЕ переопределяем PLUGIN.Items
 
+hg.Appearance.MenuPerf = hg.Appearance.MenuPerf or {
+    showcaseCols = 15,
+    allFacemapsCols = 15,
+    allFacemapsHeaderGapFactor = 0.43,
+    clothesCols = 4,
+    facemapCols = 3
+}
+
 -- === ВАЖНО: Инициализация таблицы для хранения слотов лица ===
 hg.Appearance.ModelFaceSlots = hg.Appearance.ModelFaceSlots or {}
 -- ============================================================
