@@ -1,14 +1,14 @@
 --[[
     ZCity Appearance Mod
-    Çŕěĺí˙ĺň ńňŕíäŕđňíűĺ âűďŕäŕţůčĺ ěĺíţ âűáîđŕ îäĺćäű íŕ ďŕíĺëč ń čęîíęŕěč.
-    Ďîëíîńňüţ ńîâěĺńňčě ń îđčăčíŕëüíűě cl_appearance_editor.lua – íĺ ňđĺáóĺň ĺăî çŕěĺíű.
+    Заменяет стандартные выпадающие меню выбора одежды на панели с иконками.
+    Полностью совместим с оригинальным cl_appearance_editor.lua – не требует его замены.
 ]]
 
--- Óáĺäčěń˙, ÷ňî îńíîâíŕ˙ ňŕáëčöŕ ńóůĺńňâóĺň
+-- Убедимся, что основная таблица существует
 hg.Appearance = hg.Appearance or {}
 
 -----------------------------------------------------------------------
--- 1. Öâĺňŕ č âńďîěîăŕňĺëüíűĺ ôóíęöčč (čç âŕřĺăî ôŕéëŕ)
+-- 1. Цвета и вспомогательные функции (из вашего файла)
 -----------------------------------------------------------------------
 local colors = {}
 colors.secondary = Color(25,25,35,195)
@@ -69,7 +69,7 @@ local function ApplyFacemapCamera(previewModel, isFemale)
     end
 end
 
--- Ôóíęöč˙ ńîçäŕíč˙ ńňčëčçîâŕííîăî ńęđîëëŕ (ĺńëč ĺ¸ íĺň â îđčăčíŕëĺ)
+-- Функция создания стилизованного скролла (если её нет в оригинале)
 if not CreateStyledScrollPanel then
     function CreateStyledScrollPanel(parent)
         local scroll = vgui.Create("DScrollPanel", parent)
@@ -92,7 +92,7 @@ if not CreateStyledScrollPanel then
 end
 
 -----------------------------------------------------------------------
--- 2. Ôóíęöč˙ ńîçäŕíč˙ ěĺíţ ń čęîíęŕěč (čç âŕřĺăî ôŕéëŕ)
+-- 2. Функция создания меню с иконками (из вашего файла)
 -----------------------------------------------------------------------
 local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSelection, onSelect, showColorPicker, partName, currentModelName, currentModelPath, appearanceTable, onClose, scrollKey)
     local selectedName = string.NiceName(currentSelection or "normal")
@@ -102,7 +102,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     menu:SetTitle(baseTitle .. " - " .. selectedName)
     menu:SetSize(ScreenScale(226), ScreenScale(220))
 
-    -- Ďîçčöčîíčđîâŕíčĺ
+    -- Позиционирование
     local x, y
     if parent and IsValid(parent) then
         local parentX, parentY = parent:LocalToScreen(0, 0)
@@ -142,7 +142,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     scroll:DockMargin(ScreenScale(2), ScreenScale(2), ScreenScale(2), ScreenScale(2))
 
 
-        -- Âîńńňŕíîâëĺíčĺ ďîçčöčč ńęđîëëŕ
+        -- Восстановление позиции скролла
     if scrollKey and scrollPositions[scrollKey] then
         timer.Simple(0.1, function()
             if IsValid(scroll) then
@@ -154,14 +154,14 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
 
 
 
-    -- Ńĺňęŕ 4x
+    -- Сетка 4x
     local grid = vgui.Create("DGrid", scroll)
     grid:Dock(TOP)
     grid:SetCols(MENU_PREVIEW_COLS)
     grid:SetColWide(ScreenScale(53))
     grid:SetRowHeight(ScreenScale(56))
 
-    -- Ďŕíĺëü ń ňĺęóůčě âűáîđîě
+    -- Панель с текущим выбором
     local infoPanel = vgui.Create("DPanel", scroll)
     infoPanel:Dock(TOP)
     infoPanel:SetTall(ScreenScale(20))
@@ -179,7 +179,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     currentLabel:SetTextColor(colors.mainText)
     currentLabel:SetContentAlignment(4)
 
-    -- Ďŕëčňđŕ öâĺňîâ (ňîëüęî äë˙ main)
+    -- Палитра цветов (только для main)
     if showColorPicker then
         local colorPanel = vgui.Create("DPanel", scroll)
         colorPanel:Dock(TOP)
@@ -203,7 +203,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
 
         local paletteHeaderBtn = vgui.Create("DImageButton", menu)
         paletteHeaderBtn:SetImage("icon16/palette.png")
-        paletteHeaderBtn:SetSize(24, 24)
+        paletteHeaderBtn:SetSize(20, 20)
         paletteHeaderBtn:SetTooltip("Open color palette")
         function paletteHeaderBtn:Think()
             if not IsValid(menu) or not IsValid(menu.btnClose) then return end
@@ -287,7 +287,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         end
     end
 
-    -- Ďîëó÷ŕĺě ňĺęóůčĺ ňĺęńňóđű čç appearanceTable
+    -- Получаем текущие текстуры из appearanceTable
     local currentMaterials = {}
     if appearanceTable and appearanceTable.AClothes then
         for slot, key in pairs(appearanceTable.AClothes) do
@@ -302,7 +302,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         currentMaterials = { main = normalPath, pants = normalPath, boots = normalPath }
     end
 
-    -- Ôóíęöč˙ ńîçäŕíč˙ čęîíęč
+    -- Функция создания иконки
     local function CreateClothesIcon(clothesId, clothesPath, partName, modelPath, modelName)
         local ico = vgui.Create("DPanel")
         ico:SetSize(ScreenScale(52), ScreenScale(52))
@@ -317,7 +317,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         previewModel:SetAnimated(false)
         previewModel:SetAnimSpeed(0)
 
-        -- Íŕńňđîéęŕ ęŕěĺđű â çŕâčńčěîńňč îň ÷ŕńňč ňĺëŕ
+        -- Настройка камеры в зависимости от части тела
         local camPos, lookAt, fov
         if partName == "main" or partName == "jacket" then
             camPos = Vector(70, 0, 40)
@@ -328,9 +328,15 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
             lookAt = Vector(0, 0, 15)
             fov = 30
         elseif partName == "boots" then
+            camPos = Vector(40, -50, 30) -- was 5
+            lookAt = Vector(7, 0, 0)
+            fov = 14
+        --[[    
+        elseif partName == "boots" then
             camPos = Vector(60, 0, 20) -- was 5
             lookAt = Vector(0, 8, 0)
             fov = 15
+        ]]
         end
 
         previewModel:SetCamPos(camPos)
@@ -364,7 +370,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
 
             local mats = ent:GetMaterials()
 
-            -- Ďđčěĺí˙ĺě ňĺęńňóđó äë˙ ňĺęóůĺăî ńëîňŕ
+            -- Применяем текстуру для текущего слота
             local currentSlotMaterialName = modelData.submatSlots[partName]
             if currentSlotMaterialName then
                 local slotIndex
@@ -374,7 +380,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
                 if slotIndex then ent:SetSubMaterial(slotIndex, clothesPath) end
             end
 
-            -- Ďđčěĺí˙ĺě îńňŕëüíűĺ ńëîňű čç currentMaterials
+            -- Применяем остальные слоты из currentMaterials
             for slot, matName in pairs(modelData.submatSlots) do
                 if slot ~= partName then
                     local slotIndex
@@ -424,13 +430,13 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         return ico
     end
 
-    -- Äîáŕâë˙ĺě âńĺ ďđĺäěĺňű â ńĺňęó
+    -- Добавляем все предметы в сетку
     for clothesId, clothesPath in SortedPairs(clothesTable) do
         local icon = CreateClothesIcon(clothesId, clothesPath, partName, currentModelPath, currentModelName)
         grid:AddItem(icon)
     end
 
-    -- Đŕçäĺëčňĺëü
+    -- Разделитель
     local separator = vgui.Create("DPanel", scroll)
     separator:Dock(TOP)
     separator:SetTall(ScreenScale(2))
@@ -440,7 +446,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         surface.DrawRect(0, 0, w, h)
     end
 
-    -- Ęíîďęŕ None
+    -- Кнопка None
     local noneButton = vgui.Create("DButton", scroll)
     noneButton:Dock(TOP)
     noneButton:SetTall(ScreenScale(24))
@@ -461,13 +467,13 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
 
 
 
-     -- Ńîőđŕíĺíčĺ ďîçčöčč ďđč çŕęđűňčč
+     -- Сохранение позиции при закрытии
     function menu:OnClose()
         if scrollKey and IsValid(scroll) then
             local vbar = scroll:GetVBar()
             scrollPositions[scrollKey] = vbar:GetScroll()
         end
-        -- Ĺńëč ĺńňü âíĺříčé onClose, âűçűâŕĺě ĺăî
+        -- Если есть внешний onClose, вызываем его
         if onClose then onClose() end
     end
 
@@ -481,7 +487,7 @@ end
 
 
 -----------------------------------------------------------------------
--- Ôóíęöč˙ ńîçäŕíč˙ ěĺíţ äë˙ Facemap
+-- Функция создания меню для Facemap
 -----------------------------------------------------------------------
 local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedNames, sex, currentSelection, onSelect, partName, currentModelName, currentModelPath, appearanceTable, onClose, scrollKey)
     local selectedName = string.NiceName(currentSelection or "Default")
@@ -491,7 +497,7 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
     menu:SetTitle(baseTitle .. " - " .. selectedName)
     menu:SetSize(ScreenScale(170), ScreenScale(220))
 
-    -- Ďîçčöčîíčđîâŕíčĺ ęŕę â ClothesIconMenu
+    -- Позиционирование как в ClothesIconMenu
     local x, y
     if parent and IsValid(parent) then
         local parentX, parentY = parent:LocalToScreen(0, 0)
@@ -544,14 +550,14 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
 
 
 
-    -- Ńĺňęŕ 3x
+    -- Сетка 3x
     local grid = vgui.Create("DGrid", scroll)
     grid:Dock(TOP)
     grid:SetCols(FACEMAP_MENU_PREVIEW_COLS)
     grid:SetColWide(ScreenScale(52))
     grid:SetRowHeight(ScreenScale(56))
 
-    -- Ďŕíĺëü ń ňĺęóůčě âűáîđîě
+    -- Панель с текущим выбором
     local infoPanel = vgui.Create("DPanel", scroll)
     infoPanel:Dock(TOP)
     infoPanel:SetTall(ScreenScale(20))
@@ -569,7 +575,7 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
     currentLabel:SetTextColor(colors.mainText)
     currentLabel:SetContentAlignment(4)
 
-    -- Ôóíęöč˙ ńîçäŕíč˙ čęîíęč
+    -- Функция создания иконки
     local function CreateFacemapIcon(varName, slotMap, modelPath, modelName, sex, currentSelection, onSelect)
         local ico = vgui.Create("DPanel")
         ico:SetSize(ScreenScale(52), ScreenScale(52))
@@ -613,9 +619,9 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
 
             local mats = ent:GetMaterials()
 
-            -- Ďđčěĺí˙ĺě âńĺ ňĺęńňóđű čç slotMap
+            -- Применяем все текстуры из slotMap
             for slotMaterial, texturePath in pairs(slotMap) do
-                -- Íŕőîäčě číäĺęń ýňîăî ěŕňĺđčŕëŕ â ěîäĺëč
+                -- Находим индекс этого материала в модели
                 local slotIndex
                 for i, matName in ipairs(mats) do
                     if matName == slotMaterial then
@@ -665,14 +671,14 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
         return ico
     end
 
-    -- Äîáŕâë˙ĺě âńĺ facemap â ńĺňęó
+    -- Добавляем все facemap в сетку
     for _, varName in ipairs(sortedNames) do
-        local slotMap = combinedVariants[varName]  -- ňŕáëčöŕ ńëîň -> ďóňü
+        local slotMap = combinedVariants[varName]  -- таблица слот -> путь
         local icon = CreateFacemapIcon(varName, slotMap, currentModelPath, currentModelName, sex, currentSelection, onSelect)
         grid:AddItem(icon)
     end
 
-    -- Đŕçäĺëčňĺëü
+    -- Разделитель
     local separator = vgui.Create("DPanel", scroll)
     separator:Dock(TOP)
     separator:SetTall(ScreenScale(2))
@@ -682,7 +688,7 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
         surface.DrawRect(0, 0, w, h)
     end
 
-    -- Ęíîďęŕ Default (ńáđîń íŕ ńňŕíäŕđňíîĺ ëčöî)
+    -- Кнопка Default (сброс на стандартное лицо)
     local noneButton = vgui.Create("DButton", scroll)
     noneButton:Dock(TOP)
     noneButton:SetTall(ScreenScale(24))
@@ -726,7 +732,7 @@ end
 
 
 
--- Ďóáëč÷íŕ˙ ôóíęöč˙ îňęđűňč˙ ěĺíţ îäĺćäű
+-- Публичная функция открытия меню одежды
 function hg.Appearance.OpenClothesMenu(parent, partName, currentSelection, onSelectCallback, appearanceTable, onClose)
     local ply = LocalPlayer()
     if not ply then return end
@@ -786,7 +792,7 @@ end
 
 
 
--- Ďóáëč÷íŕ˙ ôóíęöč˙ îňęđűňč˙ ěĺíţ Facemap
+-- Публичная функция открытия меню Facemap
 function hg.Appearance.OpenFacemapMenu(parent, currentSelection, onSelectCallback, appearanceTable, onClose)
     local ply = LocalPlayer()
     if not ply then return end
@@ -815,7 +821,7 @@ function hg.Appearance.OpenFacemapMenu(parent, currentSelection, onSelectCallbac
 
 
     -- =====================================================
-    -- ÍÎÂŔß ŃČŃŇĹĚŔ MULTI-FACEMAPS (ĺńëč ĺńňü)
+    -- НОВАЯ СИСТЕМА MULTI-FACEMAPS (если есть)
     -- =====================================================
 
     local combinedVariants = {}
@@ -824,13 +830,13 @@ function hg.Appearance.OpenFacemapMenu(parent, currentSelection, onSelectCallbac
     local multi = hg.Appearance.MultiFacemaps and hg.Appearance.MultiFacemaps[modelKey]
 
     if multi then
-        -- Čńďîëüçóĺě íîâóţ ńčńňĺěó
+        -- Используем новую систему
         combinedVariants = multi
 
     else
 
         -- =====================================================
-        -- ŃŇŔĐŔß ŃČŃŇĹĚŔ ZCITY (fallback)
+        -- СТАРАЯ СИСТЕМА ZCITY (fallback)
         -- =====================================================
 
         local modelSlots = hg.Appearance.FacemapsModels and hg.Appearance.FacemapsModels[modelKey]
@@ -856,10 +862,10 @@ function hg.Appearance.OpenFacemapMenu(parent, currentSelection, onSelectCallbac
 
 
     --[[
-    -- Ďîëó÷ŕĺě âńĺ ńëîňű, ńâ˙çŕííűĺ ń ýňîé ěîäĺëüţ
+    -- Получаем все слоты, связанные с этой моделью
     local modelSlots = hg.Appearance.ModelFaceSlots and hg.Appearance.ModelFaceSlots[currentModelPath]
     if not modelSlots or table.IsEmpty(modelSlots) then
-        -- Ĺńëč íĺň ńďĺöčŕëüíűő ńëîňîâ, ďđîáóĺě ńňŕđűé ńďîńîá (îäčí ńëîň)
+        -- Если нет специальных слотов, пробуем старый способ (один слот)
         local faceSlotMaterial = hg.Appearance.FacemapsModels and hg.Appearance.FacemapsModels[currentModelPath]
         if faceSlotMaterial then
             modelSlots = { [faceSlotMaterial] = true }
@@ -869,8 +875,8 @@ function hg.Appearance.OpenFacemapMenu(parent, currentSelection, onSelectCallbac
         end
     end
 
-    -- Ńîáčđŕĺě âńĺ âŕđčŕíňű ëčöŕ, îáúĺäčí˙˙ ďî čěĺíč
-    local combinedVariants = {}  -- ęëţ÷: čě˙ âŕđčŕíňŕ, çíŕ÷ĺíčĺ: ňŕáëčöŕ { [slot] = texturePath }
+    -- Собираем все варианты лица, объединяя по имени
+    local combinedVariants = {}  -- ключ: имя варианта, значение: таблица { [slot] = texturePath }
     for slot, _ in pairs(modelSlots) do
         local slotVariants = hg.Appearance.FacemapsSlots[slot]
         if slotVariants then
@@ -888,28 +894,28 @@ function hg.Appearance.OpenFacemapMenu(parent, currentSelection, onSelectCallbac
         return
     end
 
-    -- Ńîđňčđóĺě čěĺíŕ âŕđčŕíňîâ (íŕďđčěĺđ, ďî ŕëôŕâčňó)
+    -- Сортируем имена вариантов (например, по алфавиту)
     local sortedNames = table.GetKeys(combinedVariants)
     table.sort(sortedNames)
 
-    -- Ńîçäŕ¸ě ěĺíţ, ďĺđĺäŕâŕ˙ ńîáđŕííűĺ âŕđčŕíňű
+    -- Создаём меню, передавая собранные варианты
     local menu = CreateFacemapIconMenu(
         parent,
         "Select Face",
-        combinedVariants,        -- ňĺďĺđü ýňî ňŕáëčöŕ čě˙ -> { slot = texture }
-        sortedNames,             -- îňńîđňčđîâŕííűé ńďčńîę čě¸í
+        combinedVariants,        -- теперь это таблица имя -> { slot = texture }
+        sortedNames,             -- отсортированный список имён
         sexIndex,
         currentSelection,
         function(varName)        -- onSelect
             if onSelectCallback then
                 onSelectCallback(varName)
             end
-            -- Ĺńëč íóćíî îáíîâčňü íĺńęîëüęî ďîëĺé â AppearanceTable, ńäĺëŕé ýňî çäĺńü,
-            -- íî äë˙ ńîâěĺńňčěîńňč îńňŕâë˙ĺě ďîęŕ ňîëüęî îäíî ďîëĺ.
-            -- Íŕďđčěĺđ, ĺńëč ó ěîäĺëč ĺńňü îňäĺëüíűĺ ďîë˙ äë˙ âîëîń, čő ěîćíî óńňŕíîâčňü:
+            -- Если нужно обновить несколько полей в AppearanceTable, сделай это здесь,
+            -- но для совместимости оставляем пока только одно поле.
+            -- Например, если у модели есть отдельные поля для волос, их можно установить:
             -- if editTable then
-            --     editTable.AFacemap = varName  -- îńíîâíîĺ ďîëĺ
-            --     -- äë˙ âîëîń ěîćíî čńďîëüçîâŕňü editTable.AHair = varName, íî íóćíî çíŕňü, ęŕę îíč őđŕí˙ňń˙
+            --     editTable.AFacemap = varName  -- основное поле
+            --     -- для волос можно использовать editTable.AHair = varName, но нужно знать, как они хранятся
             -- end
         end,
         "face",
@@ -931,23 +937,23 @@ end
 
 
 -----------------------------------------------------------------------
--- 3. Ďĺđĺőâŕň ńîçäŕíč˙ ďŕíĺëč č çŕěĺíŕ ęíîďîę
+-- 3. Перехват создания панели и замена кнопок
 -----------------------------------------------------------------------
 
--- Ńîőđŕí˙ĺě îđčăčíŕëüíóţ ôóíęöčţ
+-- Сохраняем оригинальную функцию
 local oldCreateApperanceMenu = hg.CreateApperanceMenu
 
--- Ôóíęöč˙ ěîäčôčęŕöčč ďŕíĺëč: čůĺě ęíîďęč ďî ňĺęńňó č ďîäěĺí˙ĺě DoClick
+-- Функция модификации панели: ищем кнопки по тексту и подменяем DoClick
 local function ModifyAppearanceMenu(panel)
     if not IsValid(panel) then return end
 
-    -- Ňŕáëčöŕ ńîîňâĺňńňâč˙: ňĺęńň ęíîďęč -> ÷ŕńňü ňĺëŕ
+    -- Таблица соответствия: текст кнопки -> часть тела
     local buttonMap = {
         ["Jacket"]  = "main",
         ["Pants"]   = "pants",
         ["Boots"]   = "boots",
-        --["Gloves"]  = "gloves",      -- ĺńëč ďîíŕäîáčňń˙
-        ["Facemap"] = "facemap"      -- ňĺńňčđóĺě
+        --["Gloves"]  = "gloves",      -- если понадобится
+        ["Facemap"] = "facemap"
     }
 
     if not IsValid(panel.ShowcaseBtn) then
@@ -968,7 +974,7 @@ local function ModifyAppearanceMenu(panel)
 
     if not IsValid(panel.AllFacemapsBtn) then
         local allFacemapsBtn = vgui.Create("DButton", panel)
-        allFacemapsBtn:SetText("ALL_FACEMAPS")
+        allFacemapsBtn:SetText("ALL FACEMAPS")
         allFacemapsBtn:SetSize(math.floor(ScreenScale(70)), math.floor(ScreenScale(11)))
         ApplyBaseAppearanceButtonStyle(allFacemapsBtn)
         function allFacemapsBtn:Think()
@@ -993,19 +999,19 @@ local function ModifyAppearanceMenu(panel)
 
 
 
-    -- Đĺęóđńčâíî čůĺě âńĺ ęíîďęč âíóňđč ďŕíĺëč
+    -- Рекурсивно ищем все кнопки внутри панели
     local function FindButtons(parent)
         for _, child in ipairs(parent:GetChildren()) do
             if child:GetName() == "DButton" or child:GetClassName() == "DButton" then
                 local text = child:GetText() or ""
                 if buttonMap[text] then
-                    -- Çŕďîěčíŕĺě îđčăčíŕëüíűé DoClick (íŕ âń˙ęčé ńëó÷ŕé)
+                    -- Запоминаем оригинальный DoClick (на всякий случай)
                     local oldDoClick = child.DoClick
                     local part = buttonMap[text]
 
-                    -- Ďîäěĺí˙ĺě ěĺňîä
+                    -- Подменяем метод
                     child.DoClick = function(btn)
-                        -- Óńňŕíŕâëčâŕĺě ďîçčöčţ ęŕěĺđű (ęŕę â îđčăčíŕëĺ)
+                        -- Устанавливаем позицию камеры (как в оригинале)
                         if part == "main" then
                             panel.modelPosID = "Torso"
                         elseif part == "pants" then
@@ -1018,7 +1024,7 @@ local function ModifyAppearanceMenu(panel)
                             panel.modelPosID = "Face"
                         end
 
-                        -- Îďđĺäĺë˙ĺě ňĺęóůĺĺ çíŕ÷ĺíčĺ äë˙ ýňîé ÷ŕńňč
+                        -- Определяем текущее значение для этой части
                         local current
                         if part == "main" then
                             current = panel.AppearanceTable.AClothes.main
@@ -1027,13 +1033,13 @@ local function ModifyAppearanceMenu(panel)
                         elseif part == "boots" then
                             current = panel.AppearanceTable.AClothes.boots
                         elseif part == "gloves" then
-                            -- äë˙ gloves íóćíî áđŕňü čç ABodygroups
+                            -- для gloves нужно брать из ABodygroups
                             current = panel.AppearanceTable.ABodygroups and panel.AppearanceTable.ABodygroups["HANDS"] or "Default"
                         elseif part == "facemap" then
                             current = panel.AppearanceTable.AFacemap or "Default"
                         end
 
-                        -- Ęîëáýę îáíîâëĺíč˙ ňŕáëčöű
+                        -- Колбэк обновления таблицы
                         local function onSelect(id)
                             if part == "main" then
                                 panel.AppearanceTable.AClothes.main = id
@@ -1049,7 +1055,7 @@ local function ModifyAppearanceMenu(panel)
                             end
                         end
 
-                        -- Îňęđűâŕĺě ńîîňâĺňńňâóţůĺĺ ěĺíţ
+                        -- Открываем соответствующее меню
                         if part == "facemap" then
                             hg.Appearance.OpenFacemapMenu(btn, current, onSelect, panel.AppearanceTable, function()
                                 panel.modelPosID = "All"
@@ -1061,15 +1067,15 @@ local function ModifyAppearanceMenu(panel)
                         end
 
 
-                        -- Îňęđűâŕĺě íŕřĺ ěĺíţ
+                        -- Открываем наше меню
                         --hg.Appearance.OpenClothesMenu(btn, part, current, onSelect, panel.AppearanceTable, function()
-                            -- Ďđč çŕęđűňčč ěĺíţ âîçâđŕůŕĺě ęŕěĺđó â ďîëîćĺíčĺ "All"
+                            -- При закрытии меню возвращаем камеру в положение "All"
                             --panel.modelPosID = "All"
                         --end)
                     end
                 end
             end
-            -- Đĺęóđńčâíî îáőîäčě äî÷ĺđíčĺ ďŕíĺëč
+            -- Рекурсивно обходим дочерние панели
             if child.GetChildren then
                 FindButtons(child)
             end
@@ -1079,12 +1085,12 @@ local function ModifyAppearanceMenu(panel)
     FindButtons(panel)
 end
 
--- Ďĺđĺîďđĺäĺë˙ĺě ôóíęöčţ ńîçäŕíč˙ ěĺíţ
+-- Переопределяем функцию создания меню
 function hg.CreateApperanceMenu(ParentPanel)
-    -- Âűçűâŕĺě îđčăčíŕë
+    -- Вызываем оригинал
     oldCreateApperanceMenu(ParentPanel)
 
-    -- Ćä¸ě, ďîęŕ ďŕíĺëü ďî˙âčňń˙ č îňđčńóĺňń˙
+    -- Ждём, пока панель появится и отрисуется
     timer.Simple(0.1, function()
         if IsValid(zpan) then
             ModifyAppearanceMenu(zpan)

@@ -6,7 +6,7 @@ hg.Appearance = hg.Appearance or {}
 local SHOWCASE_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.showcaseCols) or 15
 local FACEMAP_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.allFacemapsCols) or 15
 
--- óâåëè÷åííûå èêîíêè
+-- увеличенные иконки
 local ICON_W = 150
 local ICON_H = 310
 local FACEMAP_ICON_SIZE = 128
@@ -32,7 +32,7 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
     frame:SetDraggable(false)
     frame:ShowCloseButton(true)
 
-    -- ×¨ÐÍÛÉ ÔÎÍ (êàê òû õîòåë)
+    -- ЧЁРНЫЙ ФОН
     function frame:Paint(w,h)
         surface.SetDrawColor(0,0,0,255)
         surface.DrawRect(0,0,w,h)
@@ -45,7 +45,7 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
     grid:Dock(TOP)
     grid:SetCols(SHOWCASE_COLS)
     grid:SetColWide(ICON_W + 8)
-    grid:SetRowHeight(ICON_H + 8) -- áûëî +26
+    grid:SetRowHeight(ICON_H + 8) -- было +26
 
     local editTable = appearanceTable or hg.Appearance.CurrentEditTable
     if not editTable then return end
@@ -81,29 +81,30 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
         mdl:SetAnimated(false)
         mdl:SetAnimSpeed(0)
 
+        ent:SetCycle(0)
         ----------------------------------------------------------------
-        --                ÊÀÌÅÐÀ ÈÊÎÍÊÈ (ÐÅÄÀÊÒÈÐÓÉ ÇÄÅÑÜ)
+        --                КАМЕРА ИКОНКИ (РЕДАКТИРУЙ ЗДЕСЬ)
         ----------------------------------------------------------------
-            ent:SetCycle(0)
-        -- Åñëè ìîäåëü ñëèøêîì ìàëåíüêàÿ / áîëüøàÿ — ìåíÿé çíà÷åíèÿ
-        -- CamPos = ðàññòîÿíèå êàìåðû
-        -- LookAt = òî÷êà êóäà êàìåðà ñìîòðèò
-        -- FOV = ìàñøòàá
+            
+        -- Если модель слишком маленькая / большая — меняй значения
+        -- CamPos = расстояние камеры
+        -- LookAt = точка куда камера смотрит
+        -- FOV = масштаб
         ----------------------------------------------------------------
 
 
-        mdl:SetFOV(16)                      -- ìàñøòàá ìîäåëè
-        mdl:SetCamPos(Vector(120,0,38))      -- ïîçèöèÿ êàìåðû
-        mdl:SetLookAt(Vector(0,0,30))       -- öåíòð âçãëÿäà
+        mdl:SetFOV(16)                      -- масштаб модели
+        mdl:SetCamPos(Vector(120,0,38))      -- позиция камеры
+        mdl:SetLookAt(Vector(0,0,30))       -- центр взгляда
 
 
         --[[
-        mdl:SetFOV(28)                      -- ìàñøòàá ìîäåëè
-        mdl:SetCamPos(Vector(75,0,60))      -- ïîçèöèÿ êàìåðû
-        mdl:SetLookAt(Vector(0,0,55))       -- öåíòð âçãëÿäà
+        mdl:SetFOV(28)                      -- масштаб модели
+        mdl:SetCamPos(Vector(75,0,60))      -- позиция камеры
+        mdl:SetLookAt(Vector(0,0,55))       -- центр взгляда
         ]]
         ----------------------------------------------------------------
-        --   ÝÒÈ 3 ÏÀÐÀÌÅÒÐÀ ÒÛ ÁÓÄÅØÜ ÏÎÄÃÎÍßÒÜ ÏÎÄ ÑÂÎÈ ÌÎÄÅËÈ
+        --   ЭТИ 3 ПАРАМЕТРА ТЫ БУДЕШЬ ПОДГОНЯТЬ ПОД СВОИ МОДЕЛИ
         ----------------------------------------------------------------
 
         function mdl:LayoutEntity(ent)
