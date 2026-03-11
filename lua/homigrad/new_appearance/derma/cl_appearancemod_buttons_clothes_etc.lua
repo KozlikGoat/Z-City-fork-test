@@ -129,12 +129,23 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     menu:SetDraggable(false)
     menu:ShowCloseButton(true)
 
+    local function IsPanelInsideMenu(panel)
+        while IsValid(panel) do
+            if panel == menu then return true end
+            panel = panel:GetParent()
+        end
+        return false
+    end
+
     function menu:OnFocusChanged(gained)
         if gained then return end
         timer.Simple(0, function()
             if not IsValid(self) then return end
-            if IsValid(searchEntry) and searchEntry:HasFocus() then return end
-            if self:IsHovered() then return end
+
+            local focusedPanel = vgui.GetKeyboardFocus()
+            local hoveredPanel = vgui.GetHoveredPanel()
+
+            if IsPanelInsideMenu(focusedPanel) or IsPanelInsideMenu(hoveredPanel) then return end
             self:Close()
         end)
     end
@@ -151,11 +162,12 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     local searchValue = ""
     local searchPanel
     local searchEntry
+    local searchButtonSize = 20
 
     if SEARCHABLE_CLOTHES_PARTS[partName] then
         searchPanel = vgui.Create("DPanel", menu)
         searchPanel:Dock(TOP)
-        searchPanel:SetTall(ScreenScale(14))
+        searchPanel:SetTall(math.max(ScreenScale(14), searchButtonSize + 4))
         searchPanel:DockMargin(ScreenScale(2), ScreenScale(2), ScreenScale(2), 0)
         function searchPanel:Paint(w, h)
             draw.RoundedBox(4, 0, 0, w, h, Color(20, 20, 25, 235))
@@ -187,6 +199,24 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     grid:SetCols(MENU_PREVIEW_COLS)
     grid:SetColWide(ScreenScale(53))
     grid:SetRowHeight(ScreenScale(56))
+
+    local clothesEntries = {}
+    local selectedIcon
+
+    local function NormalizeSearchValue(value)
+        local normalized = string.lower(value or "")
+        normalized = string.gsub(normalized, "_", " ")
+        normalized = string.gsub(normalized, "%s+", " ")
+        return string.Trim(normalized)
+    end
+
+    local function MatchesSearch(clothesId)
+        if searchValue == "" then return true end
+        local normalizedId = NormalizeSearchValue(clothesId)
+        local normalizedPretty = NormalizeSearchValue(string.NiceName(clothesId or ""))
+        return string.find(normalizedId, searchValue, 1, true) ~= nil
+            or string.find(normalizedPretty, searchValue, 1, true) ~= nil
+    end
 
     local clothesEntries = {}
     local selectedIcon
@@ -506,10 +536,11 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     if IsValid(searchPanel) then
         local searchButton = vgui.Create("DImageButton", searchPanel)
         searchButton:Dock(RIGHT)
-        searchButton:SetWide(searchPanel:GetTall())
+        searchButton:SetWide(searchButtonSize + 4)
         searchButton:SetImage("icon16/magnifier.png")
         searchButton:SetKeepAspect(true)
         searchButton:SetStretchToFit(false)
+        searchButton:DockMargin(0, 2, 2, 2)
         searchButton:SetTooltip("Search")
 
         searchEntry = vgui.Create("DTextEntry", searchPanel)
