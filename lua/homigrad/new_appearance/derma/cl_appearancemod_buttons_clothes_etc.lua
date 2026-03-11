@@ -130,7 +130,13 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     menu:ShowCloseButton(true)
 
     function menu:OnFocusChanged(gained)
-        if not gained then self:Close() end
+        if gained then return end
+        timer.Simple(0, function()
+            if not IsValid(self) then return end
+            if IsValid(searchEntry) and searchEntry:HasFocus() then return end
+            if self:IsHovered() then return end
+            self:Close()
+        end)
     end
 
     function menu:Paint(w, h)
@@ -144,6 +150,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
 
     local searchValue = ""
     local searchPanel
+    local searchEntry
 
     if SEARCHABLE_CLOTHES_PARTS[partName] then
         searchPanel = vgui.Create("DPanel", menu)
@@ -185,13 +192,16 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     local selectedIcon
 
     local function NormalizeSearchValue(value)
-        return string.Trim(string.lower(value or ""))
+        local normalized = string.lower(value or "")
+        normalized = string.gsub(normalized, "_", " ")
+        normalized = string.gsub(normalized, "%s+", " ")
+        return string.Trim(normalized)
     end
 
     local function MatchesSearch(clothesId)
         if searchValue == "" then return true end
-        local normalizedId = string.lower(clothesId or "")
-        local normalizedPretty = string.lower(string.NiceName(clothesId or ""))
+        local normalizedId = NormalizeSearchValue(clothesId)
+        local normalizedPretty = NormalizeSearchValue(string.NiceName(clothesId or ""))
         return string.find(normalizedId, searchValue, 1, true) ~= nil
             or string.find(normalizedPretty, searchValue, 1, true) ~= nil
     end
@@ -497,12 +507,12 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         local searchButton = vgui.Create("DImageButton", searchPanel)
         searchButton:Dock(RIGHT)
         searchButton:SetWide(searchPanel:GetTall())
-        searchButton:SetImage("icon16/magnifer.png")
+        searchButton:SetImage("icon16/magnifier.png")
         searchButton:SetKeepAspect(true)
         searchButton:SetStretchToFit(false)
         searchButton:SetTooltip("Search")
 
-        local searchEntry = vgui.Create("DTextEntry", searchPanel)
+        searchEntry = vgui.Create("DTextEntry", searchPanel)
         searchEntry:Dock(FILL)
         searchEntry:DockMargin(ScreenScale(2), ScreenScale(2), ScreenScale(2), ScreenScale(2))
         searchEntry:SetPlaceholderText("Search clothes...")
