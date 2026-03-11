@@ -218,6 +218,24 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
             or string.find(normalizedPretty, searchValue, 1, true) ~= nil
     end
 
+    local clothesEntries = {}
+    local selectedIcon
+
+    local function NormalizeSearchValue(value)
+        local normalized = string.lower(value or "")
+        normalized = string.gsub(normalized, "_", " ")
+        normalized = string.gsub(normalized, "%s+", " ")
+        return string.Trim(normalized)
+    end
+
+    local function MatchesSearch(clothesId)
+        if searchValue == "" then return true end
+        local normalizedId = NormalizeSearchValue(clothesId)
+        local normalizedPretty = NormalizeSearchValue(string.NiceName(clothesId or ""))
+        return string.find(normalizedId, searchValue, 1, true) ~= nil
+            or string.find(normalizedPretty, searchValue, 1, true) ~= nil
+    end
+
     -- Панель с текущим выбором
     local infoPanel = vgui.Create("DPanel", scroll)
     infoPanel:Dock(TOP)
