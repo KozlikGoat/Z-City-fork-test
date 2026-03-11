@@ -30,6 +30,11 @@ local clr_menu = Color(15, 15, 20, 250)
 
 local MENU_PREVIEW_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.clothesCols) or 4
 local FACEMAP_MENU_PREVIEW_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.facemapCols) or 3
+local SEARCHABLE_CLOTHES_PARTS = {
+    main = true,
+    pants = true,
+    boots = true
+}
 
 local scrollPositions = {}
 
@@ -124,8 +129,25 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     menu:SetDraggable(false)
     menu:ShowCloseButton(true)
 
+    local function IsPanelInsideMenu(panel)
+        while IsValid(panel) do
+            if panel == menu then return true end
+            panel = panel:GetParent()
+        end
+        return false
+    end
+
     function menu:OnFocusChanged(gained)
-        if not gained then self:Close() end
+        if gained then return end
+        timer.Simple(0, function()
+            if not IsValid(self) then return end
+
+            local focusedPanel = vgui.GetKeyboardFocus()
+            local hoveredPanel = vgui.GetHoveredPanel()
+
+            if IsPanelInsideMenu(focusedPanel) or IsPanelInsideMenu(hoveredPanel) then return end
+            self:Close()
+        end)
     end
 
     function menu:Paint(w, h)
@@ -135,6 +157,23 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         draw.RoundedBoxEx(8, 0, 0, w, ScreenScale(10), colors.secondary, true, true, false, false)
         surface.SetDrawColor(colors.scrollbarBorder)
         surface.DrawLine(0, ScreenScale(10), w, ScreenScale(10))
+    end
+
+    local searchValue = ""
+    local searchPanel
+    local searchEntry
+    local searchButtonSize = 20
+
+    if SEARCHABLE_CLOTHES_PARTS[partName] then
+        searchPanel = vgui.Create("DPanel", menu)
+        searchPanel:Dock(TOP)
+        searchPanel:SetTall(math.max(ScreenScale(14), searchButtonSize + 4))
+        searchPanel:DockMargin(ScreenScale(2), ScreenScale(2), ScreenScale(2), 0)
+        function searchPanel:Paint(w, h)
+            draw.RoundedBox(4, 0, 0, w, h, Color(20, 20, 25, 235))
+            surface.SetDrawColor(colors.scrollbarBorder)
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
+        end
     end
 
     local scroll = CreateStyledScrollPanel(menu)
@@ -160,6 +199,24 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     grid:SetCols(MENU_PREVIEW_COLS)
     grid:SetColWide(ScreenScale(53))
     grid:SetRowHeight(ScreenScale(56))
+
+    local clothesEntries = {}
+    local selectedIcon
+
+    local function NormalizeSearchValue(value)
+        local normalized = string.lower(value or "")
+        normalized = string.gsub(normalized, "_", " ")
+        normalized = string.gsub(normalized, "%s+", " ")
+        return string.Trim(normalized)
+    end
+
+    local function MatchesSearch(clothesId)
+        if searchValue == "" then return true end
+        local normalizedId = NormalizeSearchValue(clothesId)
+        local normalizedPretty = NormalizeSearchValue(string.NiceName(clothesId or ""))
+        return string.find(normalizedId, searchValue, 1, true) ~= nil
+            or string.find(normalizedPretty, searchValue, 1, true) ~= nil
+    end
 
     -- Панель с текущим выбором
     local infoPanel = vgui.Create("DPanel", scroll)
@@ -425,15 +482,80 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         function ico:Think()
             self.bIsHovered = vgui.GetHoveredPanel() == self or vgui.GetHoveredPanel() == previewModel
             self.IsSelected = (clothesId == currentSelection)
+            if self.IsSelected then
+                selectedIcon = self
+            end
         end
 
         return ico
     end
 
+    local function RebuildClothesGrid()
+        grid:Clear()
+        selectedIcon = nil
+
+        for _, entry in ipairs(clothesEntries) do
+            if MatchesSearch(entry.id) then
+                local icon = CreateClothesIcon(entry.id, entry.path, partName, currentModelPath, currentModelName)
+                grid:AddItem(icon)
+            end
+        end
+
+        grid:InvalidateLayout(true)
+        scroll:InvalidateLayout(true)
+    end
+
     -- Добавляем все предметы в сетку
     for clothesId, clothesPath in SortedPairs(clothesTable) do
-        local icon = CreateClothesIcon(clothesId, clothesPath, partName, currentModelPath, currentModelName)
-        grid:AddItem(icon)
+        table.insert(clothesEntries, {
+            id = clothesId,
+            path = clothesPath
+        })
+    end
+
+    RebuildClothesGrid()
+
+    if IsValid(searchPanel) then
+        local searchButton = vgui.Create("DImageButton", searchPanel)
+        searchButton:Dock(RIGHT)
+        searchButton:SetWide(searchButtonSize + 4)
+        searchButton:SetImage("icon16/magnifier.png")
+        searchButton:SetKeepAspect(true)
+        searchButton:SetStretchToFit(false)
+        searchButton:DockMargin(0, 2, 2, 2)
+        searchButton:SetTooltip("Search")
+
+        searchEntry = vgui.Create("DTextEntry", searchPanel)
+        searchEntry:Dock(FILL)
+        searchEntry:DockMargin(ScreenScale(2), ScreenScale(2), ScreenScale(2), ScreenScale(2))
+        searchEntry:SetPlaceholderText("Search clothes...")
+        searchEntry:SetUpdateOnType(true)
+
+        function searchEntry:OnValueChange(value)
+            searchValue = NormalizeSearchValue(value)
+            RebuildClothesGrid()
+        end
+
+        function searchButton:DoClick()
+            searchValue = NormalizeSearchValue(searchEntry:GetValue())
+            RebuildClothesGrid()
+        end
+    end
+
+    local vbar = scroll:GetVBar()
+    function vbar:PaintOver(w, h)
+        if not IsValid(selectedIcon) then return end
+
+        local canvas = scroll:GetCanvas()
+        if not IsValid(canvas) then return end
+
+        local _, selectedY = selectedIcon:LocalToScreen(0, selectedIcon:GetTall() * 0.5)
+        local _, canvasY = canvas:LocalToScreen(0, 0)
+        local canvasTall = math.max(canvas:GetTall(), 1)
+        local relativePos = math.Clamp((selectedY - canvasY) / canvasTall, 0, 1)
+        local markerY = math.floor(relativePos * h)
+
+        draw.RoundedBox(2, 0, math.Clamp(markerY - 2, 0, math.max(h - 4, 0)), w, 4, Color(50, 220, 80, 240))
     end
 
     -- Разделитель
