@@ -485,16 +485,16 @@ local Angle, Vector, AngleRand, VectorRand, math, hook, util, game = Angle, Vect
 		--speed = SERVER and speed + 50 or speed
 
 		if ply:GetMoveType() == MOVETYPE_LADDER or ply:GetMoveType() == MOVETYPE_NONE then
-			speed = 100
+			inertia_len = 100
 		end
 
 		if org.noradrenaline and org.noradrenaline > 0 then
-			speed = speed + 200 * math.Round(org.noradrenaline, 1)
+			inertia_len = inertia_len + 200 * math.Round(org.noradrenaline, 1)
 		end
 
-		mv:SetMaxSpeed(inertia_len)
-		mv:SetMaxClientSpeed(inertia_len)
-		ply:SetMaxSpeed(inertia_len)
+		mv:SetMaxSpeed(math.max(100, inertia_len))
+		mv:SetMaxClientSpeed(math.max(100, inertia_len))
+		ply:SetMaxSpeed(math.max(100, inertia_len))
 		ply:SetJumpPower(DEFAULT_JUMP_POWER * math.min(k, 1.1) * (not ply:GetNWBool("TauntStopMoving", false) and 1 or 0) * (ply.organism.superfighter and 1.5 or 1) * (ply.JumpPowerMul or 1))
 
 		if(CLIENT)then
