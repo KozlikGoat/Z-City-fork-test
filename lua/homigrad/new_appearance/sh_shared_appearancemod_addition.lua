@@ -186,96 +186,96 @@ local function AddCustomClothes()
 	    shirtmale = "models/humans/slav/shirtmale",
 		sportsm = "models/humans/slav/sports_sheet",
 
-		autumn01m = "models/humans/slav/octo/autumn01_sheet",
-		autumn02m = "models/humans/slav/octo/autumn02_sheet",
-		autumn03m = "models/humans/slav/octo/autumn03_sheet",
-		autumn04m = "models/humans/slav/octo/autumn04_sheet",
-		autumn06m = "models/humans/slav/octo/autumn06_sheet",
-		autumn08m = "models/humans/slav/octo/autumn08_sheet",
-		autumn09m = "models/humans/slav/octo/autumn09_sheet",
-		autumn10m = "models/humans/slav/octo/autumn10_sheet",
-		autumn11m = "models/humans/slav/octo/autumn11_sheet",
-		autumn12m = "models/humans/slav/octo/autumn12_sheet",
+		autumn_1m = "models/humans/slav/octo/autumn01_sheet",
+		autumn_2m = "models/humans/slav/octo/autumn02_sheet",
+		autumn_3m = "models/humans/slav/octo/autumn03_sheet",
+		autumn_4m = "models/humans/slav/octo/autumn04_sheet",
+		autumn_6m = "models/humans/slav/octo/autumn06_sheet",
+		autumn_8m = "models/humans/slav/octo/autumn08_sheet",
+		autumn_9m = "models/humans/slav/octo/autumn09_sheet",
+		autumn_10m = "models/humans/slav/octo/autumn10_sheet",
+		autumn_11m = "models/humans/slav/octo/autumn11_sheet",
+		autumn_12m = "models/humans/slav/octo/autumn12_sheet",
 
-		halloween19m = "models/humans/slav/octo/halloween19_sheet",
-		halloween20m = "models/humans/slav/octo/halloween20_sheet",
-		halloween22m = "models/humans/slav/octo/halloween22_sheet",
-		halloween24m = "models/humans/slav/octo/halloween24_sheet",
-		halloween28m = "models/humans/slav/octo/halloween28_sheet",
-		halloween29m = "models/humans/slav/octo/halloween29_sheet",
-		halloween30m = "models/humans/slav/octo/halloween30_sheet",
-		halloween31m = "models/humans/slav/octo/halloween31_sheet",
-		halloween32m = "models/humans/slav/octo/halloween32_sheet",
+		halloween_19m = "models/humans/slav/octo/halloween19_sheet",
+		halloween_20m = "models/humans/slav/octo/halloween20_sheet",
+		halloween_22m = "models/humans/slav/octo/halloween22_sheet",
+		halloween_24m = "models/humans/slav/octo/halloween24_sheet",
+		halloween_28m = "models/humans/slav/octo/halloween28_sheet",
+		halloween_29m = "models/humans/slav/octo/halloween29_sheet",
+		halloween_30m = "models/humans/slav/octo/halloween30_sheet",
+		halloween_31m = "models/humans/slav/octo/halloween31_sheet",
+		halloween_32m = "models/humans/slav/octo/halloween32_sheet",
 
-		hobo1m = "models/humans/slav/octo/hobo1_sheet",
-		hobo2m = "models/humans/slav/octo/hobo2_sheet",
-		hobo3m = "models/humans/slav/octo/hobo3_sheet",
-		hobo4m = "models/humans/slav/octo/hobo4_sheet",
-		hobo5m = "models/humans/slav/octo/hobo5_sheet",
-		hobo6m = "models/humans/slav/octo/hobo6_sheet",
+		hobo_1m = "models/humans/slav/octo/hobo1_sheet",
+		hobo_2m = "models/humans/slav/octo/hobo2_sheet",
+		hobo_3m = "models/humans/slav/octo/hobo3_sheet",
+		hobo_4m = "models/humans/slav/octo/hobo4_sheet",
+		hobo_5m = "models/humans/slav/octo/hobo5_sheet",
+		hobo_6m = "models/humans/slav/octo/hobo6_sheet",
 
-		sport1m = "models/humans/slav/octo/sport1_sheet",
-		sport2m = "models/humans/slav/octo/sport2_sheet",
-		sport3m = "models/humans/slav/octo/sport3_sheet",
-		sport4m = "models/humans/slav/octo/sport4_sheet",
-		sport5m = "models/humans/slav/octo/sport5_sheet",
-		sport6m = "models/humans/slav/octo/sport6_sheet",
-		sport7m = "models/humans/slav/octo/sport7_sheet",
-		sport8m = "models/humans/slav/octo/sport8_sheet",
-		sport9m = "models/humans/slav/octo/sport9_sheet",
-		sport10m = "models/humans/slav/octo/sport10_sheet",
-		sport11m = "models/humans/slav/octo/sport11_sheet",
-		sport12m = "models/humans/slav/octo/sport12_sheet",
-		sport13m = "models/humans/slav/octo/sport13_sheet",
-		sport14m = "models/humans/slav/octo/sport14_sheet",
-		sport15m = "models/humans/slav/octo/sport15_sheet",
+		sport_1m = "models/humans/slav/octo/sport1_sheet",
+		sport_2m = "models/humans/slav/octo/sport2_sheet",
+		sport_3m = "models/humans/slav/octo/sport3_sheet",
+		sport_4m = "models/humans/slav/octo/sport4_sheet",
+		sport_5m = "models/humans/slav/octo/sport5_sheet",
+		sport_6m = "models/humans/slav/octo/sport6_sheet",
+		sport_7m = "models/humans/slav/octo/sport7_sheet",
+		sport_8m = "models/humans/slav/octo/sport8_sheet",
+		sport_9m = "models/humans/slav/octo/sport9_sheet",
+		sport_10m = "models/humans/slav/octo/sport10_sheet",
+		sport_11m = "models/humans/slav/octo/sport11_sheet",
+		sport_12m = "models/humans/slav/octo/sport12_sheet",
+		sport_13m = "models/humans/slav/octo/sport13_sheet",
+		sport_14m = "models/humans/slav/octo/sport14_sheet",
+		sport_15m = "models/humans/slav/octo/sport15_sheet",
 
-		standart1m = "models/humans/slav/octo/standart1_sheet",
-		standart2m = "models/humans/slav/octo/standart2_sheet",
-		standart3m = "models/humans/slav/octo/standart3_sheet",
-		standart4m = "models/humans/slav/octo/standart4_sheet",
-		standart5m = "models/humans/slav/octo/standart5_sheet",
-		standart6m = "models/humans/slav/octo/standart6_sheet",
-		standart7m = "models/humans/slav/octo/standart7_sheet",
-		standart8m = "models/humans/slav/octo/standart8_sheet",
-		standart9m = "models/humans/slav/octo/standart9_sheet",
-		standart10m = "models/humans/slav/octo/standart10_sheet",
-		standart11m = "models/humans/slav/octo/standart11_sheet",
-		standart12m = "models/humans/slav/octo/standart12_sheet",
-		standart13m = "models/humans/slav/octo/standart13_sheet",
-		standart14m = "models/humans/slav/octo/standart14_sheet",
-		standart15m = "models/humans/slav/octo/standart15_sheet",
-		standart16m = "models/humans/slav/octo/standart16_sheet",
-		standart17m = "models/humans/slav/octo/standart17_sheet",
-		standart18m = "models/humans/slav/octo/standart18_sheet",
-		standart19m = "models/humans/slav/octo/standart19_sheet",
-		standart20m = "models/humans/slav/octo/standart20_sheet",
-		standart21m = "models/humans/slav/octo/standart21_sheet",
-		standart22m = "models/humans/slav/octo/standart22_sheet",
-		standart23m = "models/humans/slav/octo/standart23_sheet",
+		standart_1m = "models/humans/slav/octo/standart1_sheet",
+		standart_2m = "models/humans/slav/octo/standart2_sheet",
+		standart_3m = "models/humans/slav/octo/standart3_sheet",
+		standart_4m = "models/humans/slav/octo/standart4_sheet",
+		standart_5m = "models/humans/slav/octo/standart5_sheet",
+		standart_6m = "models/humans/slav/octo/standart6_sheet",
+		standart_7m = "models/humans/slav/octo/standart7_sheet",
+		standart_8m = "models/humans/slav/octo/standart8_sheet",
+		standart_9m = "models/humans/slav/octo/standart9_sheet",
+		standart_10m = "models/humans/slav/octo/standart10_sheet",
+		standart_11m = "models/humans/slav/octo/standart11_sheet",
+		standart_12m = "models/humans/slav/octo/standart12_sheet",
+		standart_13m = "models/humans/slav/octo/standart13_sheet",
+		standart_14m = "models/humans/slav/octo/standart14_sheet",
+		standart_15m = "models/humans/slav/octo/standart15_sheet",
+		standart_16m = "models/humans/slav/octo/standart16_sheet",
+		standart_17m = "models/humans/slav/octo/standart17_sheet",
+		standart_18m = "models/humans/slav/octo/standart18_sheet",
+		standart_19m = "models/humans/slav/octo/standart19_sheet",
+		standart_20m = "models/humans/slav/octo/standart20_sheet",
+		standart_21m = "models/humans/slav/octo/standart21_sheet",
+		standart_22m = "models/humans/slav/octo/standart22_sheet",
+		standart_23m = "models/humans/slav/octo/standart23_sheet",
 
-		suit1m = "models/humans/slav/octo/suit1_sheet",
-		suit2m = "models/humans/slav/octo/suit2_sheet",
-		suit3m = "models/humans/slav/octo/suit3_sheet",
-		suit4m = "models/humans/slav/octo/suit4_sheet",
-		suit5m = "models/humans/slav/octo/suit5_sheet",
-		suit6m = "models/humans/slav/octo/suit6_sheet",
-		suit7m = "models/humans/slav/octo/suit7_sheet",
-		suit8m = "models/humans/slav/octo/suit8_sheet",
+		suit_1m = "models/humans/slav/octo/suit1_sheet",
+		suit_2m = "models/humans/slav/octo/suit2_sheet",
+		suit_3m = "models/humans/slav/octo/suit3_sheet",
+		suit_4m = "models/humans/slav/octo/suit4_sheet",
+		suit_5m = "models/humans/slav/octo/suit5_sheet",
+		suit_6m = "models/humans/slav/octo/suit6_sheet",
+		suit_7m = "models/humans/slav/octo/suit7_sheet",
+		suit_8m = "models/humans/slav/octo/suit8_sheet",
 
-		winter9m = "models/humans/slav/octo/winter9_sheet",
-		winter17m = "models/humans/slav/octo/winter17_sheet",
-		winter19m = "models/humans/slav/octo/winter19_sheet",
-		winter20m = "models/humans/slav/octo/winter20_sheet",
-		winter21m = "models/humans/slav/octo/winter21_sheet",
-		winter22m = "models/humans/slav/octo/winter22_sheet",
-		winter23m = "models/humans/slav/octo/winter23_sheet",
-		winter28m = "models/humans/slav/octo/winter28_sheet",
-		winter29m = "models/humans/slav/octo/winter29_sheet",
-		winter32m = "models/humans/slav/octo/winter32_sheet",
-		winter41m = "models/humans/slav/octo/winter41_sheet",
-		winter44m = "models/humans/slav/octo/winter44_sheet",
-		winter48m = "models/humans/slav/octo/winter48_sheet",
+		winter_9m = "models/humans/slav/octo/winter9_sheet",
+		winter_17m = "models/humans/slav/octo/winter17_sheet",
+		winter_19m = "models/humans/slav/octo/winter19_sheet",
+		winter_20m = "models/humans/slav/octo/winter20_sheet",
+		winter_21m = "models/humans/slav/octo/winter21_sheet",
+		winter_22m = "models/humans/slav/octo/winter22_sheet",
+		winter_23m = "models/humans/slav/octo/winter23_sheet",
+		winter_28m = "models/humans/slav/octo/winter28_sheet",
+		winter_29m = "models/humans/slav/octo/winter29_sheet",
+		winter_32m = "models/humans/slav/octo/winter32_sheet",
+		winter_41m = "models/humans/slav/octo/winter41_sheet",
+		winter_44m = "models/humans/slav/octo/winter44_sheet",
+		winter_48m = "models/humans/slav/octo/winter48_sheet",
 
 		desertm = "models/humans/slav/desert",
 		gunsmith1m = "models/humans/slav/gunsmith1",
@@ -354,11 +354,11 @@ local function AddCustomClothes()
 		dbgclothes_69m = "models/humans/slav/dobrogradstuff/clothes/zeeke",
 		dbgclothes_70m = "models/humans/slav/dobrogradstuff/clothes/nrider_suit",
 
-		trap_sheet_m2 = "models/humans/slav/trap_sheet_2",
-		trap_sheet_m8 = "models/humans/slav/trap_sheet_8",
-		trap_sheet_m9 = "models/humans/slav/trap_sheet_9",
-		trap_sheet_m10 = "models/humans/slav/trap_sheet_10",
-		trap_sheet_m11 = "models/humans/slav/trap_sheet_11",
+		trap_sheet_2m = "models/humans/slav/trap_sheet_2",
+		trap_sheet_8m = "models/humans/slav/trap_sheet_8",
+		trap_sheet_9m = "models/humans/slav/trap_sheet_9",
+		trap_sheet_10m = "models/humans/slav/trap_sheet_10",
+		trap_sheet_11m = "models/humans/slav/trap_sheet_11",
 
 
 
@@ -374,46 +374,46 @@ local function AddCustomClothes()
 
     -- Новая женская одежда
     local femaleClothes = {
-        shirt1fem = "models/humans/modern/female/sheet_01",
-        shirt2fem = "models/humans/modern/female/sheet_02",
-        shirt3fem = "models/humans/modern/female/sheet_03",
-        pastelcolortopfem = "models/humans/modern/female/sheet_04",
-        coloredtopfem = "models/humans/modern/female/sheet_05",
-        streetwearfem = "models/humans/modern/female/sheet_06",
-        policefem = "models/humans/modern/female/sheet_07",
-        bluejacketfem = "models/humans/modern/female/sheet_08",
-        greentopfem = "models/humans/modern/female/sheet_09",
-        playeboyfem = "models/humans/modern/female/sheet_10",
-        kittytopfem = "models/humans/modern/female/sheet_11",
-        redtopfem = "models/humans/modern/female/sheet_12",
-        purpletopfem = "models/humans/modern/female/sheet_13",
-        coatfem = "models/humans/modern/female/sheet_14",
-        leatherjacketfem = "models/humans/modern/female/sheet_15",
-	    turtleneckfem = "models/roscoe/dogge1",
-	    formalshirtfem = "models/roscoe/dogge2",
-	    halloween3 = "models/humans/slav/octo/halloween3_sheet_women",
-	    halloween7 = "models/humans/slav/octo/halloween7_sheet_women",
-	    halloween8 = "models/humans/slav/octo/halloween8_sheet_women",
-	    halloween11 = "models/humans/slav/octo/halloween11_sheet_women",
-	    halloween13 = "models/humans/slav/octo/halloween13_sheet_women",
-	    halloween14 = "models/humans/slav/octo/halloween14_sheet_women",
-	    halloween15 = "models/humans/slav/octo/halloween15_sheet_women",
-	    halloween16 = "models/humans/slav/octo/halloween16_sheet_women",
-	    halloween17 = "models/humans/slav/octo/halloween17_sheet_women",
-	    halloween18 = "models/humans/slav/octo/halloween18_sheet_women",
-	    winter2 = "models/humans/slav/octo/winter2_sheet_woman",
-	    winter4 = "models/humans/slav/octo/winter4_sheet_woman",
-	    winter5 = "models/humans/slav/octo/winter5_sheet_woman",
-	    winter6 = "models/humans/slav/octo/winter6_sheet_woman",
-	    winter7 = "models/humans/slav/octo/winter7_sheet_woman",
-	    winter8 = "models/humans/slav/octo/winter8_sheet_woman",
-	    winter9 = "models/humans/slav/octo/winter9_sheet_woman",
-	    winter10 = "models/humans/slav/octo/winter10_sheet_woman",
-	    winter12 = "models/humans/slav/octo/winter12_sheet_woman",
-	    winter13 = "models/humans/slav/octo/winter13_sheet_woman",
-	    winter15 = "models/humans/slav/octo/winter15_sheet_woman",
-	    winter16 = "models/humans/slav/octo/winter16_sheet_woman",
-	    winter17 = "models/humans/slav/octo/winter17_sheet_woman",
+        shirt1_f = "models/humans/modern/female/sheet_01",
+        shirt2_f = "models/humans/modern/female/sheet_02",
+        shirt3_f = "models/humans/modern/female/sheet_03",
+        pastelcolortop_f = "models/humans/modern/female/sheet_04",
+        coloredtop_f = "models/humans/modern/female/sheet_05",
+        streetwear_f = "models/humans/modern/female/sheet_06",
+        police_f = "models/humans/modern/female/sheet_07",
+        bluejacket_f = "models/humans/modern/female/sheet_08",
+        greentop_f = "models/humans/modern/female/sheet_09",
+        playeboy_f = "models/humans/modern/female/sheet_10",
+        kittytop_f = "models/humans/modern/female/sheet_11",
+        redtop_f = "models/humans/modern/female/sheet_12",
+        purpletop_f = "models/humans/modern/female/sheet_13",
+        coat_f = "models/humans/modern/female/sheet_14",
+        leatherjacket_f = "models/humans/modern/female/sheet_15",
+	    turtleneck_f = "models/roscoe/dogge1",
+	    formalshirt_f = "models/roscoe/dogge2",
+	    halloween_3f = "models/humans/slav/octo/halloween3_sheet_women",
+	    halloween_7f = "models/humans/slav/octo/halloween7_sheet_women",
+	    halloween_8f = "models/humans/slav/octo/halloween8_sheet_women",
+	    halloween_11f = "models/humans/slav/octo/halloween11_sheet_women",
+	    halloween_13f = "models/humans/slav/octo/halloween13_sheet_women",
+	    halloween_14f = "models/humans/slav/octo/halloween14_sheet_women",
+	    halloween_15f = "models/humans/slav/octo/halloween15_sheet_women",
+	    halloween_16f = "models/humans/slav/octo/halloween16_sheet_women",
+	    halloween_17f = "models/humans/slav/octo/halloween17_sheet_women",
+	    halloween_18f = "models/humans/slav/octo/halloween18_sheet_women",
+	    winter_2f = "models/humans/slav/octo/winter2_sheet_woman",
+	    winter_4f = "models/humans/slav/octo/winter4_sheet_woman",
+	    winter_5f = "models/humans/slav/octo/winter5_sheet_woman",
+	    winter_6f = "models/humans/slav/octo/winter6_sheet_woman",
+	    winter_7f = "models/humans/slav/octo/winter7_sheet_woman",
+	    winter_8f = "models/humans/slav/octo/winter8_sheet_woman",
+	    winter_9f = "models/humans/slav/octo/winter9_sheet_woman",
+	    winter_10f = "models/humans/slav/octo/winter10_sheet_woman",
+	    winter_12f = "models/humans/slav/octo/winter12_sheet_woman",
+	    winter_13f = "models/humans/slav/octo/winter13_sheet_woman",
+	    winter_15f = "models/humans/slav/octo/winter15_sheet_woman",
+	    winter_16f = "models/humans/slav/octo/winter16_sheet_woman",
+	    winter_17f = "models/humans/slav/octo/winter17_sheet_woman",
 
 		dksclothes6f = "models/humans/slav/dksclothes6",
 		bluecheckshirtf = "models/humans/slav/dobrogradstuff/clothes/bluecheckshirt",
@@ -493,49 +493,49 @@ local function AddCustomClothes()
     hg.Appearance.ClothesDesc.blackhoodie1 = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.shirt1fem = {
+    hg.Appearance.ClothesDesc.shirt1_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.shirt2fem = {
+    hg.Appearance.ClothesDesc.shirt2_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.shirt3fem = {
+    hg.Appearance.ClothesDesc.shirt3_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.pastelcolortopfem = {
+    hg.Appearance.ClothesDesc.pastelcolortop_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.coloredtopfem = {
+    hg.Appearance.ClothesDesc.coloredtop_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.streetwearfem = {
+    hg.Appearance.ClothesDesc.streetwear_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.policefem = {
+    hg.Appearance.ClothesDesc.police_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.bluejacketfem = {
+    hg.Appearance.ClothesDesc.bluejacket_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.greentopfem = {
+    hg.Appearance.ClothesDesc.greentop_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.playeboyfem = {
+    hg.Appearance.ClothesDesc.playeboy_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.kittytopfem = {
+    hg.Appearance.ClothesDesc.kittytop_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.redtopfem = {
+    hg.Appearance.ClothesDesc.redtop_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.purpletopfem = {
+    hg.Appearance.ClothesDesc.purpletop_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.coatfem = {
+    hg.Appearance.ClothesDesc.coat_f = {
 		desc = "from zcity content."
 	}
-    hg.Appearance.ClothesDesc.leatherjacketfem = {
+    hg.Appearance.ClothesDesc.leatherjacket_f = {
 		desc = "from zcity content."
 	}
     hg.Appearance.ClothesDesc.adidassheet = {
@@ -544,164 +544,165 @@ local function AddCustomClothes()
 	hg.Appearance.ClothesDesc.stoneisland = {
 		desc = "stone island clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.turtleneckfem = {
+	hg.Appearance.ClothesDesc.turtleneck_f = {
 		desc = "turtleneck clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.formalshirtfem = {
+	hg.Appearance.ClothesDesc.formalshirt_f = {
 		desc = "formal shirt clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween3 = {
+	hg.Appearance.ClothesDesc.halloween_3f = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween7 = {
+	hg.Appearance.ClothesDesc.halloween_7f = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween8 = {
+	hg.Appearance.ClothesDesc.halloween_8f = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween11 = {
+	hg.Appearance.ClothesDesc.halloween_11f = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween13 = {
+	hg.Appearance.ClothesDesc.halloween_13f = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween14 = {
+	hg.Appearance.ClothesDesc.halloween_14f = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween15 = {
+	hg.Appearance.ClothesDesc.halloween_15f = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween16 = {
+	hg.Appearance.ClothesDesc.halloween_16f = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween17 = {
+	hg.Appearance.ClothesDesc.halloween_17f = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween18 = {
+	hg.Appearance.ClothesDesc.halloween_18f = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter2 = {
+	hg.Appearance.ClothesDesc.winter_2f = {
 		desc = "winter clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter4 = {
+	hg.Appearance.ClothesDesc.winter_4f = {
 		desc = "winter clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter5 = {
+	hg.Appearance.ClothesDesc.winter_5f = {
 		desc = "winter clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter6 = {
+	hg.Appearance.ClothesDesc.winter_6f = {
 		desc = "winter clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter7 = {
+	hg.Appearance.ClothesDesc.winter_7f = {
 		desc = "winter clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter8 = {
+	hg.Appearance.ClothesDesc.winter_8f = {
 		desc = "winter clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter9 = {
+	hg.Appearance.ClothesDesc.winter_9f = {
 		desc = "winter clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter10 = {
+	hg.Appearance.ClothesDesc.winter_10f = {
 		desc = "winter clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter12 = {
+	hg.Appearance.ClothesDesc.winter_12f = {
 		desc = "winter clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter13 = {
+	hg.Appearance.ClothesDesc.winter_13f = {
 		desc = "winter clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter15 = {
+	hg.Appearance.ClothesDesc.winter_15f = {
 		desc = "winter clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter16 = {
+	hg.Appearance.ClothesDesc.winter_16f = {
 		desc = "winter clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.winter17 = {
+	hg.Appearance.ClothesDesc.winter_17f = {
 		desc = "winter clothes from dobrograd content"
 	}
 	hg.Appearance.ClothesDesc.shirtmale = {
 		desc = "by flada"
 	}
 
-	hg.Appearance.ClothesDesc.autumn01m = {
+	hg.Appearance.ClothesDesc.autumn_1m = {
 		desc = "autumn clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.autumn02m = {
+	hg.Appearance.ClothesDesc.autumn_2m = {
 		desc = "autumn clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.autumn03m = {
+	hg.Appearance.ClothesDesc.autumn_3m = {
 		desc = "autumn clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.autumn04m = {
+	hg.Appearance.ClothesDesc.autumn_4m = {
 		desc = "autumn clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.autumn06m = {
+	hg.Appearance.ClothesDesc.autumn_6m = {
 		desc = "autumn clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.autumn08m = {
+	hg.Appearance.ClothesDesc.autumn_8m = {
 		desc = "autumn clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.autumn09m = {
+	hg.Appearance.ClothesDesc.autumn_9m = {
 		desc = "autumn clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.autumn10m = {
+	hg.Appearance.ClothesDesc.autumn_10m = {
 		desc = "autumn clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.autumn11m = {
+	hg.Appearance.ClothesDesc.autumn_11m = {
 		desc = "autumn clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.autumn12m = {
+	hg.Appearance.ClothesDesc.autumn_12m = {
 		desc = "autumn clothes from dobrograd content"
 	}
 
-	hg.Appearance.ClothesDesc.halloween19m = {
+	hg.Appearance.ClothesDesc.halloween_19m = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween20m = {
+	hg.Appearance.ClothesDesc.halloween_20m = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween22m = {
+	hg.Appearance.ClothesDesc.halloween_22m = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween24m = {
+	hg.Appearance.ClothesDesc.halloween_24m = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween28m = {
+	hg.Appearance.ClothesDesc.halloween_28m = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween29m = {
+	hg.Appearance.ClothesDesc.halloween_29m = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween30m = {
+	hg.Appearance.ClothesDesc.halloween_30m = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween31m = {
+	hg.Appearance.ClothesDesc.halloween_31m = {
 		desc = "halloween clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.halloween32m = {
+	hg.Appearance.ClothesDesc.halloween_32m = {
 		desc = "halloween clothes from dobrograd content"
 	}
 
-	hg.Appearance.ClothesDesc.hobo1m = {
+	hg.Appearance.ClothesDesc.hobo_1m = {
 		desc = "hobo clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.hobo2m = {
+	hg.Appearance.ClothesDesc.hobo_2m = {
 		desc = "hobo clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.hobo3m = {
+	hg.Appearance.ClothesDesc.hobo_3m = {
 		desc = "hobo clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.hobo4m = {
+	hg.Appearance.ClothesDesc.hobo_4m = {
 		desc = "hobo clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.hobo5m = {
+	hg.Appearance.ClothesDesc.hobo_5m = {
 		desc = "hobo clothes from dobrograd content"
 	}
-	hg.Appearance.ClothesDesc.hobo6m = {
+	hg.Appearance.ClothesDesc.hobo_6m = {
 		desc = "hobo clothes from dobrograd content"
 	}
 
 	-- Эти описания меня заебали, их никто не читает, а строчки кода они жрут нереально, скроллить становится трудно. Не буду больше их писать >:(
+	-- Потом возможно сделаю тупо проверку по пути материала, чтобы выдавать сразу куче материалов описание, но сейчас так ВПАДЛУ, что пиздец
 
 
 end
@@ -804,7 +805,7 @@ local function AddCustomFacemaps()
 	AddFacemap("models/humans/male/group01/sandro_facemap","Face 17 (New)","models/humans/slav/dobrogradstuff/american_face_zeeke")
 	AddFacemap("models/humans/male/group01/sandro_facemap","Face 18 (New)","models/humans/slav/dobrogradstuff/golovastik")
 	AddFacemap("models/humans/male/group01/sandro_facemap","Face 19 (New)","models/humans/slav/dobrogradstuff/golovastik_nordd1")
-	--AddFacemap("models/humans/male/group01/sandro_facemap","Face 20 (New)","models/humans/slav/dobrogradstuff/gromface")
+	--AddFacemap("models/humans/male/group01/sandro_facemap","Face 20 (New)","models/humans/slav/dobrogradstuff/gromface") уже есть в контенте Zcity
 	AddFacemap("models/humans/male/group01/sandro_facemap","Face 20 (New)","models/humans/slav/dobrogradstuff/xv_shirnymark_father")
 
 	AddFacemap("models/humans/male/group01/mike_facemap","Face 9 (New)","models/humans/modern/male/male_07/facemap_01")
