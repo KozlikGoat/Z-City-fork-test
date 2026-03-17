@@ -15,6 +15,32 @@ local FACEMAP_SECTION_HEADER_PAD = math.floor(FACEMAP_ICON_SIZE * (((hg.Appearan
 local scrollPositions = hg.Appearance.MenuScrollPositions or {}
 hg.Appearance.MenuScrollPositions = scrollPositions
 
+local function RestoreScrollPositionDelayed(scroll, value)
+    if not IsValid(scroll) or value == nil then return end
+
+    local token = "ZCityAppearanceMod_ShowcaseRestore_" .. tostring(scroll)
+    token = string.gsub(token, "[^%w]", "")
+
+    local attempts = 0
+    timer.Create(token, 0.05, 10, function()
+        if not IsValid(scroll) then
+            timer.Remove(token)
+            return
+        end
+
+        local vbar = scroll:GetVBar()
+        local canvas = scroll:GetCanvas()
+        local max = (vbar and vbar.CanvasSize and vbar.BarSize) and math.max(vbar.CanvasSize - vbar.BarSize, 0) or 0
+        if IsValid(canvas) and (canvas:GetTall() > scroll:GetTall() or max > 0 or attempts >= 2) then
+            vbar:SetScroll(math.Clamp(value, 0, math.max(max, value)))
+            timer.Remove(token)
+            return
+        end
+
+        attempts = attempts + 1
+    end)
+end
+
 local function ResolveModelDataByName(modelName)
     if not modelName then return nil, nil end
     local male = hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[1] and hg.Appearance.PlayerModels[1][modelName]
@@ -68,10 +94,7 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
     scroll:Dock(FILL)
 
     if scrollPositions.showcase then
-        timer.Simple(0, function()
-            if not IsValid(scroll) then return end
-            scroll:GetVBar():SetScroll(scrollPositions.showcase)
-        end)
+        RestoreScrollPositionDelayed(scroll, scrollPositions.showcase)
     end
 
     local grid = vgui.Create("DGrid", scroll)
@@ -323,10 +346,7 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
     scroll:Dock(FILL)
 
     if scrollPositions.allFacemaps then
-        timer.Simple(0, function()
-            if not IsValid(scroll) then return end
-            scroll:GetVBar():SetScroll(scrollPositions.allFacemaps)
-        end)
+        RestoreScrollPositionDelayed(scroll, scrollPositions.allFacemaps)
     end
 
     local content = vgui.Create("DIconLayout", scroll)
