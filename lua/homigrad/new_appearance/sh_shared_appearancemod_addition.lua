@@ -18,7 +18,9 @@ hg.Appearance.MenuPerf = hg.Appearance.MenuPerf or {
     allFacemapsCols = 14,
     allFacemapsHeaderGapFactor = 0.43,
     clothesCols = 4,
-    facemapCols = 3
+    facemapCols = 3,
+    glovesCols = 3,
+    modelCols = 4
 }
 
 -- === ВАЖНО: Инициализация таблицы для хранения слотов лица ===
