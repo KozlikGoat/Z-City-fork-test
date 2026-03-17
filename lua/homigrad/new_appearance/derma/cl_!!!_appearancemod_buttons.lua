@@ -1173,6 +1173,15 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
     menu:SetDraggable(false)
     menu:ShowCloseButton(true)
 
+    function menu:Paint(w, h)
+        draw.RoundedBox(8, 0, 0, w, h, clr_menu)
+        surface.SetDrawColor(colors.scrollbarBorder)
+        surface.DrawOutlinedRect(0, 0, w, h, 2)
+        draw.RoundedBoxEx(8, 0, 0, w, ScreenScale(10), colors.secondary, true, true, false, false)
+        surface.SetDrawColor(colors.scrollbarBorder)
+        surface.DrawLine(0, ScreenScale(10), w, ScreenScale(10))
+    end
+
     local function IsPanelInsideMenu(panelToCheck)
         while IsValid(panelToCheck) do
             if panelToCheck == menu then return true end
@@ -1292,7 +1301,7 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
         lbl:SetFont("ZCity_Tiny")
         lbl:SetText(string.NiceName(gloveName))
         lbl:SetTextColor(colors.mainText)
-        lbl:SetContentAlignment(8)
+        lbl:SetContentAlignment(5)
 
         function icon:Paint(w, h)
             local selected = gloveName == currentSelection
@@ -1373,11 +1382,11 @@ end
 
 local function CreateModelIcon(parent, modelName, modelData, appearanceTable, onSelectCallback)
     local pnl = vgui.Create("DPanel", parent)
-    pnl:SetSize(ScreenScale(76), ScreenScale(84))
+    pnl:SetSize(ScreenScale(80), ScreenScale(84))
 
     local mdl = vgui.Create("DModelPanel", pnl)
     mdl:Dock(FILL)
-    mdl:DockMargin(2, 2, 2, 18)
+    mdl:DockMargin(2, 2, 2, 14)
     mdl:SetModel(modelData.mdl)
     mdl:SetAnimated(false)
 
@@ -1405,7 +1414,7 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
     lbl:SetFont("ZCity_Tiny")
     lbl:SetText(modelName)
     lbl:SetTextColor(colors.mainText)
-    lbl:SetContentAlignment(8)
+    lbl:SetContentAlignment(5)
 
     function pnl:Paint(w, h)
         local selectedModel = appearanceTable and appearanceTable.AModel
@@ -1431,7 +1440,7 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
         local parentX, parentY = parent:LocalToScreen(0, 0)
         local parentW = parent:GetWide()
         x = parentX + parentW + ScreenScale(5)
-        y = parentY + ScreenScale(12)
+        y = parentY + ScreenScale(24)
         if x + menu:GetWide() > ScrW() then
             x = parentX - menu:GetWide() - ScreenScale(5)
         end
@@ -1440,7 +1449,7 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
         end
     else
         x, y = input.GetCursorPos()
-        y = y + ScreenScale(12)
+        y = y + ScreenScale(24)
         if y + menu:GetTall() > ScrH() then
             y = ScrH() - menu:GetTall() - ScreenScale(5)
         end
@@ -1489,9 +1498,11 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
 
         local grid = vgui.Create("DGrid", content)
         grid:SetCols(MODEL_MENU_PREVIEW_COLS)
-        grid:SetColWide(ScreenScale(78))
+        local availableWidth = menu:GetWide() - ScreenScale(14) - ScreenScale(8)
+        local colWide = math.max(ScreenScale(80), math.floor(availableWidth / MODEL_MENU_PREVIEW_COLS))
+        grid:SetColWide(colWide)
         grid:SetRowHeight(ScreenScale(86))
-        grid:SetSize(menu:GetWide() - ScreenScale(14), ScreenScale(4))
+        grid:SetSize(colWide * MODEL_MENU_PREVIEW_COLS, ScreenScale(4))
 
         local shownCount = 0
         for modelName, modelData in SortedPairs(hg.Appearance.PlayerModels[sexIndex] or {}) do
@@ -1615,7 +1626,7 @@ local function ModifyAppearanceMenu(panel)
             local modelCombo = FindModelComboBox(panel)
             if IsValid(modelCombo) then
                 local comboX, comboY = modelCombo:GetPos()
-                self:SetPos(comboX + modelCombo:GetWide() + ScreenScale(4), comboY)
+                self:SetPos(comboX + modelCombo:GetWide() + ScreenScale(4), comboY + math.floor(self:GetTall() * 0.2))
                 self:SetTall(modelCombo:GetTall())
             else
                 self:SetPos(panel:GetWide() - self:GetWide() - ScreenScale(10), ScreenScale(6))
