@@ -1104,5 +1104,8 @@ hook.Add("InitPostEntity", "ZCity_LoadCustomAppearance", function()
     ZCity_AddAllCustomContent()
 end)
 
+hook.Add("PostGamemodeLoaded", "ZCity_LoadCustomAppearance_PostGM", function()
+    ZCity_AddAllCustomContent()
+end)
 
 print("[ZCityAppearanceMod] Дополнение загружено!")
