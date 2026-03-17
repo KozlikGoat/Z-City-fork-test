@@ -30,6 +30,8 @@ local clr_menu = Color(15, 15, 20, 250)
 
 local MENU_PREVIEW_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.clothesCols) or 4
 local FACEMAP_MENU_PREVIEW_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.facemapCols) or 3
+local GLOVES_MENU_PREVIEW_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.glovesCols) or 3
+local MODEL_MENU_PREVIEW_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.modelCols) or 4
 local SEARCHABLE_CLOTHES_PARTS = {
     main = true,
     pants = true,
@@ -71,6 +73,71 @@ local function ApplyFacemapCamera(previewModel, isFemale)
         previewModel:SetCamPos(maleCamPos)
         previewModel:SetLookAt(maleLookAt)
         previewModel:SetFOV(maleFOV)
+    end
+end
+
+local function ResolveCurrentModelData(appearanceTable)
+    local editTable = appearanceTable or hg.Appearance.CurrentEditTable
+    local currentModelName = (editTable and editTable.AModel) or "Male 01"
+    local sexIndex = 1
+
+    if hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[2] and hg.Appearance.PlayerModels[2][currentModelName] then
+        sexIndex = 2
+    end
+
+    local modelData = hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[sexIndex] and hg.Appearance.PlayerModels[sexIndex][currentModelName]
+    local currentModelPath = (modelData and modelData.mdl) or "models/player/group01/male_01.mdl"
+
+    return editTable, currentModelName, currentModelPath, sexIndex, modelData
+end
+
+local function ApplyPreviewAppearance(ent, sexIndex, modelData, appearanceTable)
+    if not IsValid(ent) or not modelData then return end
+
+    local clothesTable = hg.Appearance.Clothes and hg.Appearance.Clothes[sexIndex]
+    local appearanceClothes = appearanceTable and appearanceTable.AClothes or {}
+    local materials = ent:GetMaterials()
+
+    if modelData.submatSlots and clothesTable then
+        for slot, matName in pairs(modelData.submatSlots) do
+            if slot ~= "hands" then
+                local selectedClothesId = appearanceClothes[slot] or "normal"
+                local selectedTexture = clothesTable[selectedClothesId] or clothesTable["normal"]
+                if selectedTexture then
+                    for matIndex, modelMat in ipairs(materials) do
+                        if modelMat == matName then
+                            ent:SetSubMaterial(matIndex - 1, selectedTexture)
+                            break
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    if appearanceTable and appearanceTable.AFacemap and appearanceTable.AFacemap ~= "Default" then
+        local facemapSlots = {}
+        local modelKey = string.lower(modelData.mdl or "")
+        local multi = hg.Appearance.MultiFacemaps and hg.Appearance.MultiFacemaps[modelKey]
+
+        if multi and multi[appearanceTable.AFacemap] then
+            facemapSlots = multi[appearanceTable.AFacemap]
+        else
+            local modelSlot = hg.Appearance.FacemapsModels and hg.Appearance.FacemapsModels[modelKey]
+            local slotVariants = modelSlot and hg.Appearance.FacemapsSlots and hg.Appearance.FacemapsSlots[modelSlot]
+            if slotVariants and slotVariants[appearanceTable.AFacemap] then
+                facemapSlots = { [modelSlot] = slotVariants[appearanceTable.AFacemap] }
+            end
+        end
+
+        for slotName, texturePath in pairs(facemapSlots) do
+            for matIndex, modelMat in ipairs(materials) do
+                if modelMat == slotName then
+                    ent:SetSubMaterial(matIndex - 1, texturePath)
+                    break
+                end
+            end
+        end
     end
 end
 
@@ -1069,6 +1136,264 @@ function hg.Appearance.OpenFacemapMenu(parent, currentSelection, onSelectCallbac
 end
 
 
+local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, appearanceTable, onClose)
+    local editTable, currentModelName, currentModelPath, sexIndex, modelData = ResolveCurrentModelData(appearanceTable)
+    if not modelData then return end
+
+    local bodygroupsBySex = hg.Appearance.Bodygroups and hg.Appearance.Bodygroups["HANDS"] and hg.Appearance.Bodygroups["HANDS"][sexIndex]
+    if not bodygroupsBySex then
+        notification.AddLegacy("No gloves available", NOTIFY_ERROR, 3)
+        return
+    end
+
+    local menu = vgui.Create("DFrame")
+    menu:SetTitle("Select Gloves - " .. string.NiceName(currentSelection or "None"))
+    menu:SetSize(ScreenScale(210), ScreenScale(205))
+
+    local x, y
+    if parent and IsValid(parent) then
+        local parentX, parentY = parent:LocalToScreen(0, 0)
+        local parentW = parent:GetWide()
+        x = parentX + parentW + ScreenScale(5)
+        y = parentY
+        if x + menu:GetWide() > ScrW() then
+            x = parentX - menu:GetWide() - ScreenScale(5)
+        end
+    else
+        x, y = input.GetCursorPos()
+    end
+    menu:SetPos(x, y)
+    menu:MakePopup()
+    menu:SetDraggable(false)
+
+    function menu:Paint(w, h)
+        draw.RoundedBox(8, 0, 0, w, h, clr_menu)
+        surface.SetDrawColor(colors.scrollbarBorder)
+        surface.DrawOutlinedRect(0, 0, w, h, 2)
+    end
+
+    local scroll = CreateStyledScrollPanel(menu)
+    scroll:Dock(FILL)
+    scroll:DockMargin(ScreenScale(2), ScreenScale(2), ScreenScale(2), ScreenScale(2))
+
+    local grid = vgui.Create("DGrid", scroll)
+    grid:Dock(TOP)
+    grid:SetCols(GLOVES_MENU_PREVIEW_COLS)
+    grid:SetColWide(ScreenScale(66))
+    grid:SetRowHeight(ScreenScale(74))
+
+    local lply = LocalPlayer()
+
+    for gloveName, gloveData in SortedPairs(bodygroupsBySex) do
+        local hasAccess = hg.Appearance.GetAccessToAll and hg.Appearance.GetAccessToAll(lply)
+        local hasItem = lply and lply.PS_HasItem and gloveData and gloveData.ID and lply:PS_HasItem(gloveData.ID)
+        if gloveData and gloveData[2] and not hasAccess and not hasItem then continue end
+        local icon = vgui.Create("DPanel")
+        icon:SetSize(ScreenScale(64), ScreenScale(70))
+
+        local mdl = vgui.Create("DModelPanel", icon)
+        mdl:Dock(FILL)
+        mdl:DockMargin(2, 2, 2, 14)
+        mdl:SetModel(currentModelPath)
+        mdl:SetAnimated(false)
+
+        -- GLOVES_CAMERA_START
+        mdl:SetCamPos(Vector(18, -14, 61))
+        mdl:SetLookAt(Vector(3, 0, 58))
+        mdl:SetFOV(22)
+        -- GLOVES_CAMERA_END
+
+        function mdl:LayoutEntity(ent)
+            if not IsValid(ent) then return end
+            ent:SetSequence(ent:LookupSequence("idle_suitcase"))
+            ent:SetCycle(0)
+            ent:SetPlaybackRate(0)
+            ent.AutomaticFrameAdvance = false
+            ent:SetAngles(Angle(0, 0, 0))
+
+            ApplyPreviewAppearance(ent, sexIndex, modelData, editTable)
+
+            local bgValue = gloveData and gloveData[1]
+            if bgValue then
+                for _, bg in ipairs(ent:GetBodyGroups() or {}) do
+                    if string.lower(bg.name or "") == "hands" then
+                        for subIndex, subModel in ipairs(bg.submodels or {}) do
+                            if subModel == bgValue then
+                                ent:SetBodygroup(bg.id, subIndex)
+                                break
+                            end
+                        end
+                        break
+                    end
+                end
+            end
+        end
+
+        function mdl:DoClick()
+            if onSelectCallback then onSelectCallback(gloveName) end
+            menu:Close()
+            surface.PlaySound("player/weapon_draw_0" .. math.random(2, 5) .. ".wav")
+        end
+
+        local lbl = vgui.Create("DLabel", icon)
+        lbl:Dock(BOTTOM)
+        lbl:SetTall(12)
+        lbl:SetFont("ZCity_Tiny")
+        lbl:SetText(string.NiceName(gloveName))
+        lbl:SetTextColor(colors.mainText)
+        lbl:SetContentAlignment(5)
+
+        function icon:Paint(w, h)
+            local selected = gloveName == currentSelection
+            draw.RoundedBox(4, 0, 0, w, h, selected and colors.selectionBG or clr_ico)
+            surface.SetDrawColor(colors.scrollbarBorder)
+            surface.DrawOutlinedRect(0, 0, w, h, selected and 2 or 1)
+        end
+
+        grid:AddItem(icon)
+    end
+
+    function menu:OnClose()
+        if onClose then onClose() end
+    end
+
+    return menu
+end
+
+
+local function ModelHasFacemapVariants(modelPath)
+    if not modelPath then return false end
+    local modelKey = string.lower(modelPath)
+    if hg.Appearance.MultiFacemaps and hg.Appearance.MultiFacemaps[modelKey] then return true end
+
+    local slot = hg.Appearance.FacemapsModels and hg.Appearance.FacemapsModels[modelKey]
+    if not slot then return false end
+
+    local slotVariants = hg.Appearance.FacemapsSlots and hg.Appearance.FacemapsSlots[slot]
+    return slotVariants and not table.IsEmpty(slotVariants) or false
+end
+
+local function CreateModelIcon(parent, modelName, modelData, appearanceTable, onSelectCallback)
+    local pnl = vgui.Create("DPanel", parent)
+    pnl:SetSize(ScreenScale(76), ScreenScale(84))
+
+    local mdl = vgui.Create("DModelPanel", pnl)
+    mdl:Dock(FILL)
+    mdl:DockMargin(2, 2, 2, 14)
+    mdl:SetModel(modelData.mdl)
+    mdl:SetAnimated(false)
+
+    local isFemale = modelData.sex == true
+    ApplyFacemapCamera(mdl, isFemale)
+
+    function mdl:LayoutEntity(ent)
+        if not IsValid(ent) then return end
+        ent:SetAngles(Angle(0, 0, 0))
+        ent:SetSequence(ent:LookupSequence("idle_suitcase"))
+        ent:SetCycle(0)
+        ent:SetPlaybackRate(0)
+        ent.AutomaticFrameAdvance = false
+
+        ApplyPreviewAppearance(ent, isFemale and 2 or 1, modelData, appearanceTable)
+    end
+
+    function mdl:DoClick()
+        if onSelectCallback then onSelectCallback(modelName) end
+    end
+
+    local lbl = vgui.Create("DLabel", pnl)
+    lbl:Dock(BOTTOM)
+    lbl:SetTall(12)
+    lbl:SetFont("ZCity_Tiny")
+    lbl:SetText(modelName)
+    lbl:SetTextColor(colors.mainText)
+    lbl:SetContentAlignment(5)
+
+    function pnl:Paint(w, h)
+        local selectedModel = appearanceTable and appearanceTable.AModel
+        local selected = selectedModel == modelName
+        draw.RoundedBox(4, 0, 0, w, h, selected and colors.selectionBG or clr_ico)
+        surface.SetDrawColor(colors.scrollbarBorder)
+        surface.DrawOutlinedRect(0, 0, w, h, selected and 2 or 1)
+    end
+
+    return pnl
+end
+
+function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback, appearanceTable, onClose)
+    local editTable = appearanceTable or hg.Appearance.CurrentEditTable
+    if not editTable then return end
+
+    local menu = vgui.Create("DFrame")
+    menu:SetTitle("Select Model")
+    menu:SetSize(ScreenScale(260), ScreenScale(230))
+
+    local x, y
+    if parent and IsValid(parent) then
+        local parentX, parentY = parent:LocalToScreen(0, 0)
+        local parentW = parent:GetWide()
+        x = parentX + parentW + ScreenScale(5)
+        y = parentY
+        if x + menu:GetWide() > ScrW() then
+            x = parentX - menu:GetWide() - ScreenScale(5)
+        end
+    else
+        x, y = input.GetCursorPos()
+    end
+
+    menu:SetPos(x, y)
+    menu:MakePopup()
+    menu:SetDraggable(false)
+
+    local scroll = CreateStyledScrollPanel(menu)
+    scroll:Dock(FILL)
+    scroll:DockMargin(ScreenScale(2), ScreenScale(2), ScreenScale(2), ScreenScale(2))
+
+    local content = vgui.Create("DIconLayout", scroll)
+    content:Dock(TOP)
+    content:SetSpaceY(ScreenScale(3))
+
+    local function addSection(title, sexIndex)
+        local header = vgui.Create("DLabel", content)
+        header:SetSize(menu:GetWide() - ScreenScale(14), ScreenScale(12))
+        header:SetFont("ZCity_Main")
+        header:SetText(title)
+        header:SetTextColor(colors.mainText)
+
+        local grid = vgui.Create("DGrid", content)
+        grid:SetCols(MODEL_MENU_PREVIEW_COLS)
+        grid:SetColWide(ScreenScale(78))
+        grid:SetRowHeight(ScreenScale(86))
+        grid:SetSize(menu:GetWide() - ScreenScale(14), ScreenScale(4))
+
+        local shownCount = 0
+        for modelName, modelData in SortedPairs(hg.Appearance.PlayerModels[sexIndex] or {}) do
+            if not ModelHasFacemapVariants(modelData and modelData.mdl) then continue end
+
+            local icon = CreateModelIcon(grid, modelName, modelData, editTable, function(selectedModel)
+                if onSelectCallback then onSelectCallback(selectedModel) end
+                menu:Close()
+                surface.PlaySound("player/weapon_draw_0" .. math.random(2, 5) .. ".wav")
+            end)
+            grid:AddItem(icon)
+            shownCount = shownCount + 1
+        end
+
+        local rows = math.max(1, math.ceil(shownCount / MODEL_MENU_PREVIEW_COLS))
+        grid:SetTall(rows * ScreenScale(86))
+    end
+
+    addSection("Male", 1)
+    addSection("Female", 2)
+
+    function menu:OnClose()
+        if onClose then onClose() end
+    end
+
+    return menu
+end
+
+
 
 
 
@@ -1092,8 +1417,9 @@ local function ModifyAppearanceMenu(panel)
         ["Jacket"]  = "main",
         ["Pants"]   = "pants",
         ["Boots"]   = "boots",
-        --["Gloves"]  = "gloves",      -- если понадобится
-        ["Facemap"] = "facemap"
+        ["Gloves"]  = "gloves",
+        ["Facemap"] = "facemap",
+        ["Model"] = "model"
     }
 
     if not IsValid(panel.ShowcaseBtn) then
@@ -1162,6 +1488,8 @@ local function ModifyAppearanceMenu(panel)
                             panel.modelPosID = "Hands"
                         elseif part == "facemap" then
                             panel.modelPosID = "Face"
+                        elseif part == "model" then
+                            panel.modelPosID = "All"
                         end
 
                         -- Определяем текущее значение для этой части
@@ -1177,6 +1505,8 @@ local function ModifyAppearanceMenu(panel)
                             current = panel.AppearanceTable.ABodygroups and panel.AppearanceTable.ABodygroups["HANDS"] or "Default"
                         elseif part == "facemap" then
                             current = panel.AppearanceTable.AFacemap or "Default"
+                        elseif part == "model" then
+                            current = panel.AppearanceTable.AModel
                         end
 
                         -- Колбэк обновления таблицы
@@ -1192,12 +1522,22 @@ local function ModifyAppearanceMenu(panel)
                                 panel.AppearanceTable.ABodygroups["HANDS"] = id
                             elseif part == "facemap" then
                                 panel.AppearanceTable.AFacemap = id
+                            elseif part == "model" then
+                                panel.AppearanceTable.AModel = id
                             end
                         end
 
                         -- Открываем соответствующее меню
                         if part == "facemap" then
                             hg.Appearance.OpenFacemapMenu(btn, current, onSelect, panel.AppearanceTable, function()
+                                panel.modelPosID = "All"
+                            end)
+                        elseif part == "gloves" then
+                            CreateGlovesIconMenu(btn, current, onSelect, panel.AppearanceTable, function()
+                                panel.modelPosID = "All"
+                            end)
+                        elseif part == "model" then
+                            hg.Appearance.OpenModelMenu(btn, current, onSelect, panel.AppearanceTable, function()
                                 panel.modelPosID = "All"
                             end)
                         else
