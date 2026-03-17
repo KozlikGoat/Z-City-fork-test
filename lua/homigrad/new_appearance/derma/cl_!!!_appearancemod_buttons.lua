@@ -752,6 +752,7 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
     scroll:DockMargin(ScreenScale(2), ScreenScale(2), ScreenScale(2), ScreenScale(2))
 
 
+
     if scrollKey and scrollPositions[scrollKey] then
         timer.Simple(0.1, function()
             if IsValid(scroll) then
@@ -1212,6 +1213,13 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
     scroll:Dock(FILL)
     scroll:DockMargin(ScreenScale(2), ScreenScale(2), ScreenScale(2), ScreenScale(2))
 
+    if scrollPositions.gloves then
+        timer.Simple(0, function()
+            if not IsValid(scroll) then return end
+            scroll:GetVBar():SetScroll(scrollPositions.gloves)
+        end)
+    end
+
     local grid = vgui.Create("DGrid", scroll)
     grid:Dock(TOP)
     grid:SetCols(GLOVES_MENU_PREVIEW_COLS)
@@ -1338,6 +1346,10 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
     end
 
     function menu:OnClose()
+        if IsValid(scroll) then
+            local vbar = scroll:GetVBar()
+            scrollPositions.gloves = vbar and vbar:GetScroll() or 0
+        end
         if onClose then onClose() end
     end
 
@@ -1405,12 +1417,31 @@ end
 local function QueueDelayedFacemapApply(editTable, modelName, facemapName)
     if not editTable or not modelName or not facemapName then return end
 
-    editTable.__AppearancePendingFacemap = {
-        model = modelName,
-        facemap = facemapName,
-        applyAt = CurTime() + 0.08,
-        retries = 8
-    }
+    local timerId = "ZCityAppearanceMod_FacemapApply_" .. string.gsub(tostring(editTable), "[^%w]", "")
+    local retries = 10
+
+    timer.Create(timerId, 0.05, retries, function()
+        if not editTable then
+            timer.Remove(timerId)
+            return
+        end
+
+        if editTable.AModel ~= modelName then return end
+
+        local modelData = (hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[1] and hg.Appearance.PlayerModels[1][modelName])
+            or (hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[2] and hg.Appearance.PlayerModels[2][modelName])
+        local modelPath = modelData and modelData.mdl
+
+        if not ModelHasFacemapName(modelPath, facemapName) then
+            timer.Remove(timerId)
+            return
+        end
+
+        editTable.AFacemap = facemapName
+        if editTable.AFacemap == facemapName then
+            timer.Remove(timerId)
+        end
+    end)
 end
 
 hg.Appearance.QueueDelayedFacemapApply = QueueDelayedFacemapApply
@@ -1542,10 +1573,19 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
     scroll:Dock(FILL)
     scroll:DockMargin(ScreenScale(2), ScreenScale(2), ScreenScale(2), ScreenScale(2))
 
+    if scrollPositions.modelSelector then
+        timer.Simple(0, function()
+            if not IsValid(scroll) then return end
+            scroll:GetVBar():SetScroll(scrollPositions.modelSelector)
+        end)
+    end
+
     local content = vgui.Create("DIconLayout", scroll)
     content:Dock(TOP)
     content:SetSpaceX(0)
     content:SetSpaceY(ScreenScale(3))
+
+    local selectedIcon
 
     local function addSection(title, sexIndex)
         local header = vgui.Create("DLabel", content)
@@ -1572,6 +1612,9 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
                 surface.PlaySound("player/weapon_draw_0" .. math.random(2, 5) .. ".wav")
             end)
             grid:AddItem(icon)
+            if editTable.AModel == modelName then
+                selectedIcon = icon
+            end
             shownCount = shownCount + 1
         end
 
@@ -1582,7 +1625,27 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
     addSection("Male", 1)
     addSection("Female", 2)
 
+    local vbar = scroll:GetVBar()
+    function vbar:PaintOver(w, h)
+        if not IsValid(selectedIcon) then return end
+
+        local canvas = scroll:GetCanvas()
+        if not IsValid(canvas) then return end
+
+        local _, selectedY = selectedIcon:LocalToScreen(0, selectedIcon:GetTall() * 0.5)
+        local _, canvasY = canvas:LocalToScreen(0, 0)
+        local canvasTall = math.max(canvas:GetTall(), 1)
+        local relativePos = math.Clamp((selectedY - canvasY) / canvasTall, 0, 1)
+        local markerY = math.floor(relativePos * h)
+
+        draw.RoundedBox(2, 0, math.Clamp(markerY - 2, 0, math.max(h - 4, 0)), w, 4, Color(50, 220, 80, 240))
+    end
+
     function menu:OnClose()
+        if IsValid(scroll) then
+            local vbar = scroll:GetVBar()
+            scrollPositions.modelSelector = vbar and vbar:GetScroll() or 0
+        end
         if onClose then onClose() end
     end
 
@@ -1620,6 +1683,7 @@ hook.Add("Think", "ZCityAppearanceMod_KeepChosenFacemap", function()
         editTable.__AppearancePendingFacemap = nil
     end
 end)
+
 
 
 

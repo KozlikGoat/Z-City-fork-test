@@ -12,6 +12,8 @@ local ICON_H = 310
 local FACEMAP_ICON_SIZE = 128
 local FACEMAP_ICON_SPACING = 6
 local FACEMAP_SECTION_HEADER_PAD = math.floor(FACEMAP_ICON_SIZE * (((hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.allFacemapsHeaderGapFactor) or 0.43)))
+local scrollPositions = hg.Appearance.MenuScrollPositions or {}
+hg.Appearance.MenuScrollPositions = scrollPositions
 
 local function ResolveModelDataByName(modelName)
     if not modelName then return nil, nil end
@@ -64,6 +66,13 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
 
     local scroll = vgui.Create("DScrollPanel", frame)
     scroll:Dock(FILL)
+
+    if scrollPositions.showcase then
+        timer.Simple(0, function()
+            if not IsValid(scroll) then return end
+            scroll:GetVBar():SetScroll(scrollPositions.showcase)
+        end)
+    end
 
     local grid = vgui.Create("DGrid", scroll)
     grid:Dock(TOP)
@@ -221,6 +230,13 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
 
     end
 
+    function frame:OnClose()
+        if IsValid(scroll) then
+            local vbar = scroll:GetVBar()
+            scrollPositions.showcase = vbar and vbar:GetScroll() or 0
+        end
+    end
+
 end
 
 
@@ -305,6 +321,13 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
 
     local scroll = vgui.Create("DScrollPanel", frame)
     scroll:Dock(FILL)
+
+    if scrollPositions.allFacemaps then
+        timer.Simple(0, function()
+            if not IsValid(scroll) then return end
+            scroll:GetVBar():SetScroll(scrollPositions.allFacemaps)
+        end)
+    end
 
     local content = vgui.Create("DIconLayout", scroll)
     content:Dock(TOP)
@@ -412,10 +435,11 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
             if hg.Appearance.QueueDelayedFacemapApply then
                 hg.Appearance.QueueDelayedFacemapApply(editTable, modelName, varName)
             else
-                editTable.__AppearancePendingFacemap = {
-                    model = modelName,
-                    facemap = varName
-                }
+                timer.Simple(0.05, function()
+                    if not editTable then return end
+                    if editTable.AModel ~= modelName then return end
+                    editTable.AFacemap = varName
+                end)
             end
             EnsureValidClothesForModel(editTable, modelData)
 
@@ -487,6 +511,13 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
     for _, sex in ipairs({1, 2}) do
         for modelName, modelData in SortedPairs(hg.Appearance.PlayerModels[sex] or {}) do
             BuildModelSection(modelName, modelData)
+        end
+    end
+
+    function frame:OnClose()
+        if IsValid(scroll) then
+            local vbar = scroll:GetVBar()
+            scrollPositions.allFacemaps = vbar and vbar:GetScroll() or 0
         end
     end
 end
