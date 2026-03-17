@@ -50,6 +50,14 @@ local function ApplyBaseAppearanceButtonStyle(btn)
     end
 end
 
+local function PaintSelectionIcon(panel, w, h, isSelected, isHovered)
+    local bgColor = isSelected and colors.selectionBG or clr_ico
+    draw.RoundedBox(4, 0, 0, w, h, bgColor)
+    local borderCol = isHovered and Color(255,200,50,255) or colors.scrollbarBorder
+    surface.SetDrawColor(borderCol)
+    surface.DrawOutlinedRect(0, 0, w, h, isSelected and 2 or 1)
+end
+
 local function ApplyFacemapCamera(previewModel, isFemale)
     if not IsValid(previewModel) then return end
 
@@ -1173,15 +1181,6 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
     menu:SetDraggable(false)
     menu:ShowCloseButton(true)
 
-    function menu:Paint(w, h)
-        draw.RoundedBox(8, 0, 0, w, h, clr_menu)
-        surface.SetDrawColor(colors.scrollbarBorder)
-        surface.DrawOutlinedRect(0, 0, w, h, 2)
-        draw.RoundedBoxEx(8, 0, 0, w, ScreenScale(10), colors.secondary, true, true, false, false)
-        surface.SetDrawColor(colors.scrollbarBorder)
-        surface.DrawLine(0, ScreenScale(10), w, ScreenScale(10))
-    end
-
     local function IsPanelInsideMenu(panelToCheck)
         while IsValid(panelToCheck) do
             if panelToCheck == menu then return true end
@@ -1216,8 +1215,8 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
     local grid = vgui.Create("DGrid", scroll)
     grid:Dock(TOP)
     grid:SetCols(GLOVES_MENU_PREVIEW_COLS)
-    grid:SetColWide(ScreenScale(66))
-    grid:SetRowHeight(ScreenScale(74))
+    grid:SetColWide(ScreenScale(68))
+    grid:SetRowHeight(ScreenScale(72))
 
     local lply = LocalPlayer()
     local selectedIcon
@@ -1226,12 +1225,13 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
         local hasAccess = hg.Appearance.GetAccessToAll and hg.Appearance.GetAccessToAll(lply)
         local hasItem = lply and lply.PS_HasItem and gloveData and gloveData.ID and lply:PS_HasItem(gloveData.ID)
         if gloveData and gloveData[2] and not hasAccess and not hasItem then continue end
-        local icon = vgui.Create("DPanel")
-        icon:SetSize(ScreenScale(64), ScreenScale(70))
+        local icon = vgui.Create("DButton")
+        icon:SetText("")
+        icon:SetSize(ScreenScale(66), ScreenScale(68))
 
         local mdl = vgui.Create("DModelPanel", icon)
         mdl:Dock(FILL)
-        mdl:DockMargin(2, 2, 2, 16)
+        mdl:DockMargin(2, 2, 2, 14)
         mdl:SetModel(currentModelPath)
         mdl:SetAnimated(false)
 
@@ -1289,10 +1289,14 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
             end
         end
 
-        function mdl:DoClick()
+        function icon:DoClick()
             if onSelectCallback then onSelectCallback(gloveName) end
             menu:Close()
             surface.PlaySound("player/weapon_draw_0" .. math.random(2, 5) .. ".wav")
+        end
+
+        function mdl:DoClick()
+            icon:DoClick()
         end
 
         local lbl = vgui.Create("DLabel", icon)
@@ -1302,13 +1306,16 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
         lbl:SetText(string.NiceName(gloveName))
         lbl:SetTextColor(colors.mainText)
         lbl:SetContentAlignment(5)
+        lbl:SetMouseInputEnabled(false)
+
+        function icon:Think()
+            self.bIsHovered = vgui.GetHoveredPanel() == self or vgui.GetHoveredPanel() == mdl
+        end
 
         function icon:Paint(w, h)
             local selected = gloveName == currentSelection
             if selected then selectedIcon = self end
-            draw.RoundedBox(4, 0, 0, w, h, selected and colors.selectionBG or clr_ico)
-            surface.SetDrawColor(colors.scrollbarBorder)
-            surface.DrawOutlinedRect(0, 0, w, h, selected and 2 or 1)
+            PaintSelectionIcon(self, w, h, selected, self.bIsHovered)
         end
 
         grid:AddItem(icon)
@@ -1381,7 +1388,8 @@ local function ModelHasFacemapVariants(modelPath)
 end
 
 local function CreateModelIcon(parent, modelName, modelData, appearanceTable, onSelectCallback)
-    local pnl = vgui.Create("DPanel", parent)
+    local pnl = vgui.Create("DButton", parent)
+    pnl:SetText("")
     pnl:SetSize(ScreenScale(80), ScreenScale(84))
 
     local mdl = vgui.Create("DModelPanel", pnl)
@@ -1404,8 +1412,12 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
         ApplyPreviewAppearance(ent, isFemale and 2 or 1, modelData, appearanceTable)
     end
 
-    function mdl:DoClick()
+    function pnl:DoClick()
         if onSelectCallback then onSelectCallback(modelName) end
+    end
+
+    function mdl:DoClick()
+        pnl:DoClick()
     end
 
     local lbl = vgui.Create("DLabel", pnl)
@@ -1415,13 +1427,16 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
     lbl:SetText(modelName)
     lbl:SetTextColor(colors.mainText)
     lbl:SetContentAlignment(5)
+    lbl:SetMouseInputEnabled(false)
+
+    function pnl:Think()
+        self.bIsHovered = vgui.GetHoveredPanel() == self or vgui.GetHoveredPanel() == mdl
+    end
 
     function pnl:Paint(w, h)
         local selectedModel = appearanceTable and appearanceTable.AModel
         local selected = selectedModel == modelName
-        draw.RoundedBox(4, 0, 0, w, h, selected and colors.selectionBG or clr_ico)
-        surface.SetDrawColor(colors.scrollbarBorder)
-        surface.DrawOutlinedRect(0, 0, w, h, selected and 2 or 1)
+        PaintSelectionIcon(self, w, h, selected, self.bIsHovered)
     end
 
     return pnl
@@ -1460,6 +1475,15 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
     menu:SetDraggable(false)
     menu:ShowCloseButton(true)
 
+    function menu:Paint(w, h)
+        draw.RoundedBox(8, 0, 0, w, h, clr_menu)
+        surface.SetDrawColor(colors.scrollbarBorder)
+        surface.DrawOutlinedRect(0, 0, w, h, 2)
+        draw.RoundedBoxEx(8, 0, 0, w, ScreenScale(10), colors.secondary, true, true, false, false)
+        surface.SetDrawColor(colors.scrollbarBorder)
+        surface.DrawLine(0, ScreenScale(10), w, ScreenScale(10))
+    end
+
     local function IsPanelInsideMenu(panelToCheck)
         while IsValid(panelToCheck) do
             if panelToCheck == menu then return true end
@@ -1491,8 +1515,8 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
 
     local function addSection(title, sexIndex)
         local header = vgui.Create("DLabel", content)
-        header:SetSize(menu:GetWide() - ScreenScale(14), ScreenScale(16))
-        header:SetFont("ZCity_Tiny")
+        header:SetSize(menu:GetWide() - ScreenScale(14), ScreenScale(18))
+        header:SetFont("ZCity_Small")
         header:SetText(title)
         header:SetTextColor(colors.mainText)
 
@@ -1626,10 +1650,10 @@ local function ModifyAppearanceMenu(panel)
             local modelCombo = FindModelComboBox(panel)
             if IsValid(modelCombo) then
                 local comboX, comboY = modelCombo:GetPos()
-                self:SetPos(comboX + modelCombo:GetWide() + ScreenScale(4), comboY + math.floor(self:GetTall() * 0.2))
+                self:SetPos(comboX + modelCombo:GetWide() + ScreenScale(4), comboY + ScreenScale(3))
                 self:SetTall(modelCombo:GetTall())
             else
-                self:SetPos(panel:GetWide() - self:GetWide() - ScreenScale(10), ScreenScale(6))
+                self:SetPos(panel:GetWide() - self:GetWide() - ScreenScale(10), ScreenScale(10))
                 self:SetTall(math.floor(ScreenScale(15)))
             end
         end
