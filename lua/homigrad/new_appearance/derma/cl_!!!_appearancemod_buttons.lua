@@ -110,6 +110,69 @@ local function ApplyFacemapCamera(previewModel, isFemale)
     end
 end
 
+
+local PREVIEW_RENDER_BOUNDS_MIN = Vector(-10000, -10000, -10000)
+local PREVIEW_RENDER_BOUNDS_MAX = Vector(10000, 10000, 10000)
+
+local function FreezePreviewEntity(ent)
+    if not IsValid(ent) then return end
+
+    ent:SetRenderBounds(PREVIEW_RENDER_BOUNDS_MIN, PREVIEW_RENDER_BOUNDS_MAX)
+    ent.__AppearanceRenderBoundsExpanded = true
+
+    local idleSeq = ent:LookupSequence("idle_suitcase")
+    if idleSeq and idleSeq >= 0 then
+        ent:SetSequence(idleSeq)
+    end
+
+    ent:SetCycle(0)
+    ent:SetPlaybackRate(0)
+    ent.AutomaticFrameAdvance = false
+    ent:SetAngles(Angle(0, 0, 0))
+
+    if ent.SetIK then
+        ent:SetIK(false)
+    end
+
+    if ent.SetLayerWeight then
+        for layerID = 0, 31 do
+            ent:SetLayerWeight(layerID, 0)
+        end
+    end
+
+    if ent.SetLayerPlaybackRate then
+        for layerID = 0, 31 do
+            ent:SetLayerPlaybackRate(layerID, 0)
+        end
+    end
+
+    if ent.GetFlexNum and ent.SetFlexWeight then
+        local flexCount = ent:GetFlexNum() or 0
+        for flexID = 0, math.max(flexCount - 1, 0) do
+            ent:SetFlexWeight(flexID, 0)
+        end
+    end
+
+    if ent.FrameAdvance then
+        ent:FrameAdvance(0)
+    end
+end
+
+local function EnsurePreviewPanelBounds(mdlPanel)
+    if not IsValid(mdlPanel) then return end
+
+    local function ApplyBounds()
+        if not IsValid(mdlPanel) then return end
+        local ent = mdlPanel.Entity
+        if IsValid(ent) then
+            ent:SetRenderBounds(PREVIEW_RENDER_BOUNDS_MIN, PREVIEW_RENDER_BOUNDS_MAX)
+        end
+    end
+
+    ApplyBounds()
+    timer.Simple(0, ApplyBounds)
+end
+
 local function ResolveCurrentModelData(appearanceTable)
     local editTable = appearanceTable or hg.Appearance.CurrentEditTable
     local currentModelName = (editTable and editTable.AModel) or "Male 01"
@@ -490,8 +553,10 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         previewModel:Dock(FILL)
         previewModel:DockMargin(2, 2, 2, 2)
         previewModel:SetModel(modelPath)
+        EnsurePreviewPanelBounds(previewModel)
         previewModel:SetAnimated(false)
         previewModel:SetAnimSpeed(0)
+        function previewModel:RunAnimation() end
 
         -- Настройка камеры в зависимости от части тела
         local camPos, lookAt, fov
@@ -533,11 +598,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
 
         function previewModel:LayoutEntity(ent)
             if not IsValid(ent) then return end
-            ent:SetSequence(ent:LookupSequence("idle_suitcase"))
-            ent:SetCycle(0)
-            ent:SetPlaybackRate(0)
-            ent.AutomaticFrameAdvance = false
-            ent:SetAngles(Angle(0, 0, 0))
+            FreezePreviewEntity(ent)
 
             if ent.__AppearanceFrozenClothes and ent.__AppearanceFrozenClothes == clothesId then return end
 
@@ -736,7 +797,13 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
 
     local menu = vgui.Create("DFrame")
     menu:SetTitle(baseTitle .. " - " .. selectedName)
-    menu:SetSize(ScreenScale(170), ScreenScale(220))
+
+    local defaultMenuHeight = ScreenScale(220)
+    local rowsCount = math.max(1, math.ceil(#sortedNames / FACEMAP_MENU_PREVIEW_COLS))
+    local contentHeight = ScreenScale(24) + (rowsCount * ScreenScale(56)) + ScreenScale(12) + ScreenScale(24)
+    local dynamicMenuHeight = math.Clamp(contentHeight + ScreenScale(20), ScreenScale(130), defaultMenuHeight)
+
+    menu:SetSize(ScreenScale(170), dynamicMenuHeight)
 
     -- Позиционирование как в ClothesIconMenu
     local x, y
@@ -829,8 +896,10 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
         previewModel:Dock(FILL)
         previewModel:DockMargin(2, 2, 2, 2)
         previewModel:SetModel(modelPath)
+        EnsurePreviewPanelBounds(previewModel)
         previewModel:SetAnimated(false)
         previewModel:SetAnimSpeed(0)
+        function previewModel:RunAnimation() end
         ApplyFacemapCamera(previewModel, sex == 2)
 
         previewModel:SetDirectionalLight(BOX_RIGHT, Color(255, 0, 0))
@@ -848,11 +917,7 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
 
         function previewModel:LayoutEntity(ent)
             if not IsValid(ent) then return end
-            ent:SetSequence(ent:LookupSequence("idle_suitcase"))
-            ent:SetCycle(0)
-            ent:SetPlaybackRate(0)
-            ent.AutomaticFrameAdvance = false
-            ent:SetAngles(Angle(0, 0, 0))
+            FreezePreviewEntity(ent)
 
             if ent.__AppearanceFrozenFacemap and ent.__AppearanceFrozenFacemap == varName then return end
 
@@ -1267,7 +1332,9 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
         mdl:Dock(FILL)
         mdl:DockMargin(2, 2, 2, 10)
         mdl:SetModel(currentModelPath)
+        EnsurePreviewPanelBounds(mdl)
         mdl:SetAnimated(false)
+        function mdl:RunAnimation() end
 
         -- GLOVES_CAMERA_START
         mdl:SetCamPos(Vector(9, -24, 34))
@@ -1277,11 +1344,7 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
 
         function mdl:LayoutEntity(ent)
             if not IsValid(ent) then return end
-            ent:SetSequence(ent:LookupSequence("idle_suitcase"))
-            ent:SetCycle(0)
-            ent:SetPlaybackRate(0)
-            ent.AutomaticFrameAdvance = false
-            ent:SetAngles(Angle(0, 0, 0))
+            FreezePreviewEntity(ent)
 
             ApplyPreviewAppearance(ent, sexIndex, modelData, editTable)
 
@@ -1481,7 +1544,9 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
     mdl:Dock(FILL)
     mdl:DockMargin(2, 2, 2, 10)
     mdl:SetModel(modelData.mdl)
+    EnsurePreviewPanelBounds(mdl)
     mdl:SetAnimated(false)
+    function mdl:RunAnimation() end
 
     local isFemale = modelData.sex == true
     ApplyFacemapCamera(mdl, isFemale)
@@ -1493,11 +1558,7 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
 
     function mdl:LayoutEntity(ent)
         if not IsValid(ent) then return end
-        ent:SetAngles(Angle(0, 0, 0))
-        ent:SetSequence(ent:LookupSequence("idle_suitcase"))
-        ent:SetCycle(0)
-        ent:SetPlaybackRate(0)
-        ent.AutomaticFrameAdvance = false
+        FreezePreviewEntity(ent)
 
         ApplyPreviewAppearance(ent, isFemale and 2 or 1, modelData, previewAppearance)
     end

@@ -41,6 +41,69 @@ local function RestoreScrollPositionDelayed(scroll, value)
     end)
 end
 
+
+local PREVIEW_RENDER_BOUNDS_MIN = Vector(-10000, -10000, -10000)
+local PREVIEW_RENDER_BOUNDS_MAX = Vector(10000, 10000, 10000)
+
+local function FreezePreviewEntity(ent)
+    if not IsValid(ent) then return end
+
+    ent:SetRenderBounds(PREVIEW_RENDER_BOUNDS_MIN, PREVIEW_RENDER_BOUNDS_MAX)
+    ent.__AppearanceRenderBoundsExpanded = true
+
+    local idleSeq = ent:LookupSequence("idle_suitcase")
+    if idleSeq and idleSeq >= 0 then
+        ent:SetSequence(idleSeq)
+    end
+
+    ent:SetCycle(0)
+    ent:SetPlaybackRate(0)
+    ent.AutomaticFrameAdvance = false
+    ent:SetAngles(Angle(0,0,0))
+
+    if ent.SetIK then
+        ent:SetIK(false)
+    end
+
+    if ent.SetLayerWeight then
+        for layerID = 0, 31 do
+            ent:SetLayerWeight(layerID, 0)
+        end
+    end
+
+    if ent.SetLayerPlaybackRate then
+        for layerID = 0, 31 do
+            ent:SetLayerPlaybackRate(layerID, 0)
+        end
+    end
+
+    if ent.GetFlexNum and ent.SetFlexWeight then
+        local flexCount = ent:GetFlexNum() or 0
+        for flexID = 0, math.max(flexCount - 1, 0) do
+            ent:SetFlexWeight(flexID, 0)
+        end
+    end
+
+    if ent.FrameAdvance then
+        ent:FrameAdvance(0)
+    end
+end
+
+local function EnsurePreviewPanelBounds(mdlPanel)
+    if not IsValid(mdlPanel) then return end
+
+    local function ApplyBounds()
+        if not IsValid(mdlPanel) then return end
+        local ent = mdlPanel.Entity
+        if IsValid(ent) then
+            ent:SetRenderBounds(PREVIEW_RENDER_BOUNDS_MIN, PREVIEW_RENDER_BOUNDS_MAX)
+        end
+    end
+
+    ApplyBounds()
+    timer.Simple(0, ApplyBounds)
+end
+
 local function ResolveModelDataByName(modelName)
     if not modelName then return nil, nil end
     local male = hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[1] and hg.Appearance.PlayerModels[1][modelName]
@@ -133,9 +196,11 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
 
         mdl:Dock(FILL)
         mdl:SetModel(modelPath)
+        EnsurePreviewPanelBounds(mdl)
 
         mdl:SetAnimated(false)
         mdl:SetAnimSpeed(0)
+        function mdl:RunAnimation() end
 
         ----------------------------------------------------------------
         --                КАМЕРА ИКОНКИ (РЕДАКТИРУЙ ЗДЕСЬ)
@@ -164,11 +229,7 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
 
         function mdl:LayoutEntity(ent)
             if not IsValid(ent) then return end
-            ent:SetAngles(Angle(0,0,0))
-            ent:SetSequence(ent:LookupSequence("idle_suitcase"))
-            ent:SetCycle(0)
-            ent:SetPlaybackRate(0)
-            ent.AutomaticFrameAdvance = false
+            FreezePreviewEntity(ent)
 
             if ent.__AppearanceFrozenShowcase then return end
 
@@ -371,8 +432,10 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
         mdl:SetPos(2, 2)
         mdl:SetSize(iconSize - 4, iconSize - 4)
         mdl:SetModel(modelData.mdl)
+        EnsurePreviewPanelBounds(mdl)
         mdl:SetAnimated(false)
         mdl:SetAnimSpeed(0)
+        function mdl:RunAnimation() end
         ApplyFacemapCameraBySex(mdl, modelData.sex and true or false)
         mdl:SetDirectionalLight(BOX_RIGHT, Color(255, 0, 0))
         mdl:SetDirectionalLight(BOX_LEFT, Color(125, 155, 255))
@@ -382,11 +445,7 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
 
         function mdl:LayoutEntity(ent)
             if not IsValid(ent) then return end
-            ent:SetAngles(Angle(0, 0, 0))
-            ent:SetSequence(ent:LookupSequence("idle_suitcase"))
-            ent:SetCycle(0)
-            ent:SetPlaybackRate(0)
-            ent.AutomaticFrameAdvance = false
+            FreezePreviewEntity(ent)
 
             if ent.__AppearanceFrozenFacemapAll and ent.__AppearanceFrozenFacemapAll == varName then return end
 
