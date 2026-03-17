@@ -1220,6 +1220,17 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
 
             ApplyPreviewAppearance(ent, sexIndex, modelData, editTable)
 
+            local defaultHandsMaterial = (sexIndex == 2) and "models/humans/female/group01/normal" or "models/humans/male/group01/normal"
+            if modelData.submatSlots and modelData.submatSlots.hands then
+                local handsSlot = modelData.submatSlots.hands
+                for matIndex, modelMatName in ipairs(ent:GetMaterials()) do
+                    if modelMatName == handsSlot then
+                        ent:SetSubMaterial(matIndex - 1, defaultHandsMaterial)
+                        break
+                    end
+                end
+            end
+
             local pointItem = gloveData and gloveData.ID and hg.PointShop and hg.PointShop.Items and hg.PointShop.Items[gloveData.ID]
             local pointData = pointItem and pointItem.DATA
             if pointData then
@@ -1227,16 +1238,6 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
                     local matIndex = tonumber(subMatIndex)
                     if matIndex ~= nil and isstring(subMatPath) and subMatPath ~= "" then
                         ent:SetSubMaterial(matIndex, subMatPath)
-                    end
-                end
-
-                if modelData.submatSlots and modelData.submatSlots.hands and isstring(pointData[0]) then
-                    local handsSlot = modelData.submatSlots.hands
-                    for matIndex, modelMatName in ipairs(ent:GetMaterials()) do
-                        if modelMatName == handsSlot then
-                            ent:SetSubMaterial(matIndex - 1, pointData[0])
-                            break
-                        end
                     end
                 end
             end
@@ -1525,35 +1526,41 @@ local function ModifyAppearanceMenu(panel)
     end
 
     if not IsValid(panel.ModelSelectorBtn) then
-        local modelCombo = FindModelComboBox(panel)
-        if IsValid(modelCombo) then
-            local modelBtn = vgui.Create("DButton", panel)
-            modelBtn:SetText("MODEL SELECTOR")
-            modelBtn:SetSize(math.floor(ScreenScale(85)), modelCombo:GetTall())
-            ApplyBaseAppearanceButtonStyle(modelBtn)
+        local modelBtn = vgui.Create("DButton", panel)
+        modelBtn:SetText("MODEL SELECTOR")
+        modelBtn:SetSize(math.floor(ScreenScale(85)), math.floor(ScreenScale(15)))
+        ApplyBaseAppearanceButtonStyle(modelBtn)
 
-            function modelBtn:Think()
-                if not IsValid(modelCombo) or not IsValid(panel) then return end
+        function modelBtn:Think()
+            if not IsValid(panel) then return end
+
+            local modelCombo = FindModelComboBox(panel)
+            if IsValid(modelCombo) then
                 local comboX, comboY = modelCombo:GetPos()
                 self:SetPos(comboX + modelCombo:GetWide() + ScreenScale(4), comboY)
                 self:SetTall(modelCombo:GetTall())
+            else
+                self:SetPos(panel:GetWide() - self:GetWide() - ScreenScale(10), ScreenScale(6))
+                self:SetTall(math.floor(ScreenScale(15)))
             end
-
-            function modelBtn:DoClick()
-                panel.modelPosID = "All"
-                hg.Appearance.OpenModelMenu(self, panel.AppearanceTable and panel.AppearanceTable.AModel, function(modelName)
-                    if not panel.AppearanceTable then return end
-                    panel.AppearanceTable.AModel = modelName
-                    if IsValid(modelCombo) and modelCombo.SetText then
-                        modelCombo:SetText(modelName)
-                    end
-                end, panel.AppearanceTable, function()
-                    panel.modelPosID = "All"
-                end)
-            end
-
-            panel.ModelSelectorBtn = modelBtn
         end
+
+        function modelBtn:DoClick()
+            panel.modelPosID = "All"
+            hg.Appearance.OpenModelMenu(self, panel.AppearanceTable and panel.AppearanceTable.AModel, function(modelName)
+                if not panel.AppearanceTable then return end
+                panel.AppearanceTable.AModel = modelName
+
+                local modelCombo = FindModelComboBox(panel)
+                if IsValid(modelCombo) and modelCombo.SetText then
+                    modelCombo:SetText(modelName)
+                end
+            end, panel.AppearanceTable, function()
+                panel.modelPosID = "All"
+            end)
+        end
+
+        panel.ModelSelectorBtn = modelBtn
     end
 
     -- Рекурсивно ищем все кнопки внутри панели
