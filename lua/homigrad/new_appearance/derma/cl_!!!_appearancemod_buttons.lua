@@ -1171,6 +1171,28 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
     menu:SetPos(x, y)
     menu:MakePopup()
     menu:SetDraggable(false)
+    menu:ShowCloseButton(true)
+
+    local function IsPanelInsideMenu(panelToCheck)
+        while IsValid(panelToCheck) do
+            if panelToCheck == menu then return true end
+            panelToCheck = panelToCheck:GetParent()
+        end
+        return false
+    end
+
+    function menu:OnFocusChanged(gained)
+        if gained then return end
+        timer.Simple(0, function()
+            if not IsValid(self) then return end
+
+            local focusedPanel = vgui.GetKeyboardFocus()
+            local hoveredPanel = vgui.GetHoveredPanel()
+
+            if IsPanelInsideMenu(focusedPanel) or IsPanelInsideMenu(hoveredPanel) then return end
+            self:Close()
+        end)
+    end
 
     function menu:Paint(w, h)
         draw.RoundedBox(8, 0, 0, w, h, clr_menu)
@@ -1200,7 +1222,7 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
 
         local mdl = vgui.Create("DModelPanel", icon)
         mdl:Dock(FILL)
-        mdl:DockMargin(2, 2, 2, 14)
+        mdl:DockMargin(2, 2, 2, 16)
         mdl:SetModel(currentModelPath)
         mdl:SetAnimated(false)
 
@@ -1266,11 +1288,11 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
 
         local lbl = vgui.Create("DLabel", icon)
         lbl:Dock(BOTTOM)
-        lbl:SetTall(12)
+        lbl:SetTall(16)
         lbl:SetFont("ZCity_Tiny")
         lbl:SetText(string.NiceName(gloveName))
         lbl:SetTextColor(colors.mainText)
-        lbl:SetContentAlignment(5)
+        lbl:SetContentAlignment(8)
 
         function icon:Paint(w, h)
             local selected = gloveName == currentSelection
@@ -1307,6 +1329,36 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
 end
 
 
+local function SyncModelSelectorCombo(panel, modelName)
+    if not IsValid(panel) then return end
+    if not modelName or modelName == "" then return end
+
+    local function FindCombo(parent)
+        if not IsValid(parent) or not parent.GetChildren then return nil end
+        for _, child in ipairs(parent:GetChildren()) do
+            local className = child.GetClassName and child:GetClassName() or ""
+            if className == "DComboBox" then
+                return child
+            end
+            local nested = FindCombo(child)
+            if IsValid(nested) then return nested end
+        end
+    end
+
+    local combo = FindCombo(panel)
+    if not IsValid(combo) then return end
+
+    if combo.ChooseOption then
+        combo:ChooseOption(modelName)
+    end
+
+    if combo.SetValue then
+        combo:SetValue(modelName)
+    elseif combo.SetText then
+        combo:SetText(modelName)
+    end
+end
+
 local function ModelHasFacemapVariants(modelPath)
     if not modelPath then return false end
     local modelKey = string.lower(modelPath)
@@ -1325,7 +1377,7 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
 
     local mdl = vgui.Create("DModelPanel", pnl)
     mdl:Dock(FILL)
-    mdl:DockMargin(2, 2, 2, 14)
+    mdl:DockMargin(2, 2, 2, 18)
     mdl:SetModel(modelData.mdl)
     mdl:SetAnimated(false)
 
@@ -1349,11 +1401,11 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
 
     local lbl = vgui.Create("DLabel", pnl)
     lbl:Dock(BOTTOM)
-    lbl:SetTall(12)
+    lbl:SetTall(14)
     lbl:SetFont("ZCity_Tiny")
     lbl:SetText(modelName)
     lbl:SetTextColor(colors.mainText)
-    lbl:SetContentAlignment(5)
+    lbl:SetContentAlignment(8)
 
     function pnl:Paint(w, h)
         local selectedModel = appearanceTable and appearanceTable.AModel
@@ -1372,14 +1424,14 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
 
     local menu = vgui.Create("DFrame")
     menu:SetTitle("Select Model")
-    menu:SetSize(ScreenScale(260), ScreenScale(230))
+    menu:SetSize(ScreenScale(340), ScreenScale(250))
 
     local x, y
     if parent and IsValid(parent) then
         local parentX, parentY = parent:LocalToScreen(0, 0)
         local parentW = parent:GetWide()
         x = parentX + parentW + ScreenScale(5)
-        y = parentY
+        y = parentY + ScreenScale(12)
         if x + menu:GetWide() > ScrW() then
             x = parentX - menu:GetWide() - ScreenScale(5)
         end
@@ -1388,11 +1440,37 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
         end
     else
         x, y = input.GetCursorPos()
+        y = y + ScreenScale(12)
+        if y + menu:GetTall() > ScrH() then
+            y = ScrH() - menu:GetTall() - ScreenScale(5)
+        end
     end
 
     menu:SetPos(x, y)
     menu:MakePopup()
     menu:SetDraggable(false)
+    menu:ShowCloseButton(true)
+
+    local function IsPanelInsideMenu(panelToCheck)
+        while IsValid(panelToCheck) do
+            if panelToCheck == menu then return true end
+            panelToCheck = panelToCheck:GetParent()
+        end
+        return false
+    end
+
+    function menu:OnFocusChanged(gained)
+        if gained then return end
+        timer.Simple(0, function()
+            if not IsValid(self) then return end
+
+            local focusedPanel = vgui.GetKeyboardFocus()
+            local hoveredPanel = vgui.GetHoveredPanel()
+
+            if IsPanelInsideMenu(focusedPanel) or IsPanelInsideMenu(hoveredPanel) then return end
+            self:Close()
+        end)
+    end
 
     local scroll = CreateStyledScrollPanel(menu)
     scroll:Dock(FILL)
@@ -1404,8 +1482,8 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
 
     local function addSection(title, sexIndex)
         local header = vgui.Create("DLabel", content)
-        header:SetSize(menu:GetWide() - ScreenScale(14), ScreenScale(12))
-        header:SetFont("ZCity_Main")
+        header:SetSize(menu:GetWide() - ScreenScale(14), ScreenScale(16))
+        header:SetFont("ZCity_Tiny")
         header:SetText(title)
         header:SetTextColor(colors.mainText)
 
@@ -1551,10 +1629,7 @@ local function ModifyAppearanceMenu(panel)
                 if not panel.AppearanceTable then return end
                 panel.AppearanceTable.AModel = modelName
 
-                local modelCombo = FindModelComboBox(panel)
-                if IsValid(modelCombo) and modelCombo.SetText then
-                    modelCombo:SetText(modelName)
-                end
+                SyncModelSelectorCombo(panel, modelName)
             end, panel.AppearanceTable, function()
                 panel.modelPosID = "All"
             end)
