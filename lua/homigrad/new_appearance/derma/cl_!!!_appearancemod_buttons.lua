@@ -1148,7 +1148,7 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
 
     local menu = vgui.Create("DFrame")
     menu:SetTitle("Select Gloves - " .. string.NiceName(currentSelection or "None"))
-    menu:SetSize(ScreenScale(210), ScreenScale(205))
+    menu:SetSize(ScreenScale(210), ScreenScale(165))
 
     local x, y
     if parent and IsValid(parent) then
@@ -1159,8 +1159,14 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
         if x + menu:GetWide() > ScrW() then
             x = parentX - menu:GetWide() - ScreenScale(5)
         end
+        if y + menu:GetTall() > ScrH() then
+            y = ScrH() - menu:GetTall() - ScreenScale(5)
+        end
     else
         x, y = input.GetCursorPos()
+        if y + menu:GetTall() > ScrH() then
+            y = ScrH() - menu:GetTall() - ScreenScale(5)
+        end
     end
     menu:SetPos(x, y)
     menu:MakePopup()
@@ -1183,6 +1189,7 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
     grid:SetRowHeight(ScreenScale(74))
 
     local lply = LocalPlayer()
+    local selectedIcon
 
     for gloveName, gloveData in SortedPairs(bodygroupsBySex) do
         local hasAccess = hg.Appearance.GetAccessToAll and hg.Appearance.GetAccessToAll(lply)
@@ -1198,9 +1205,9 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
         mdl:SetAnimated(false)
 
         -- GLOVES_CAMERA_START
-        mdl:SetCamPos(Vector(18, -14, 61))
-        mdl:SetLookAt(Vector(3, 0, 58))
-        mdl:SetFOV(22)
+        mdl:SetCamPos(Vector(9, -24, 34))
+        mdl:SetLookAt(Vector(3, -10, 31))
+        mdl:SetFOV(25)
         -- GLOVES_CAMERA_END
 
         function mdl:LayoutEntity(ent)
@@ -1212,6 +1219,27 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
             ent:SetAngles(Angle(0, 0, 0))
 
             ApplyPreviewAppearance(ent, sexIndex, modelData, editTable)
+
+            local pointItem = gloveData and gloveData.ID and hg.PointShop and hg.PointShop.Items and hg.PointShop.Items[gloveData.ID]
+            local pointData = pointItem and pointItem.DATA
+            if pointData then
+                for subMatIndex, subMatPath in pairs(pointData) do
+                    local matIndex = tonumber(subMatIndex)
+                    if matIndex ~= nil and isstring(subMatPath) and subMatPath ~= "" then
+                        ent:SetSubMaterial(matIndex, subMatPath)
+                    end
+                end
+
+                if modelData.submatSlots and modelData.submatSlots.hands and isstring(pointData[0]) then
+                    local handsSlot = modelData.submatSlots.hands
+                    for matIndex, modelMatName in ipairs(ent:GetMaterials()) do
+                        if modelMatName == handsSlot then
+                            ent:SetSubMaterial(matIndex - 1, pointData[0])
+                            break
+                        end
+                    end
+                end
+            end
 
             local bgValue = gloveData and gloveData[1]
             if bgValue then
@@ -1245,12 +1273,29 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
 
         function icon:Paint(w, h)
             local selected = gloveName == currentSelection
+            if selected then selectedIcon = self end
             draw.RoundedBox(4, 0, 0, w, h, selected and colors.selectionBG or clr_ico)
             surface.SetDrawColor(colors.scrollbarBorder)
             surface.DrawOutlinedRect(0, 0, w, h, selected and 2 or 1)
         end
 
         grid:AddItem(icon)
+    end
+
+    local vbar = scroll:GetVBar()
+    function vbar:PaintOver(w, h)
+        if not IsValid(selectedIcon) then return end
+
+        local canvas = scroll:GetCanvas()
+        if not IsValid(canvas) then return end
+
+        local _, selectedY = selectedIcon:LocalToScreen(0, selectedIcon:GetTall() * 0.5)
+        local _, canvasY = canvas:LocalToScreen(0, 0)
+        local canvasTall = math.max(canvas:GetTall(), 1)
+        local relativePos = math.Clamp((selectedY - canvasY) / canvasTall, 0, 1)
+        local markerY = math.floor(relativePos * h)
+
+        draw.RoundedBox(2, 0, math.Clamp(markerY - 2, 0, math.max(h - 4, 0)), w, 4, Color(50, 220, 80, 240))
     end
 
     function menu:OnClose()
@@ -1337,6 +1382,9 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
         if x + menu:GetWide() > ScrW() then
             x = parentX - menu:GetWide() - ScreenScale(5)
         end
+        if y + menu:GetTall() > ScrH() then
+            y = ScrH() - menu:GetTall() - ScreenScale(5)
+        end
     else
         x, y = input.GetCursorPos()
     end
@@ -1418,8 +1466,7 @@ local function ModifyAppearanceMenu(panel)
         ["Pants"]   = "pants",
         ["Boots"]   = "boots",
         ["Gloves"]  = "gloves",
-        ["Facemap"] = "facemap",
-        ["Model"] = "model"
+        ["Facemap"] = "facemap"
     }
 
     if not IsValid(panel.ShowcaseBtn) then
@@ -1465,6 +1512,50 @@ local function ModifyAppearanceMenu(panel)
 
 
 
+    local function FindModelComboBox(parent)
+        if not IsValid(parent) or not parent.GetChildren then return nil end
+        for _, child in ipairs(parent:GetChildren()) do
+            local className = child.GetClassName and child:GetClassName() or ""
+            if className == "DComboBox" then
+                return child
+            end
+            local nested = FindModelComboBox(child)
+            if IsValid(nested) then return nested end
+        end
+    end
+
+    if not IsValid(panel.ModelSelectorBtn) then
+        local modelCombo = FindModelComboBox(panel)
+        if IsValid(modelCombo) then
+            local modelBtn = vgui.Create("DButton", panel)
+            modelBtn:SetText("MODEL SELECTOR")
+            modelBtn:SetSize(math.floor(ScreenScale(85)), modelCombo:GetTall())
+            ApplyBaseAppearanceButtonStyle(modelBtn)
+
+            function modelBtn:Think()
+                if not IsValid(modelCombo) or not IsValid(panel) then return end
+                local comboX, comboY = modelCombo:GetPos()
+                self:SetPos(comboX + modelCombo:GetWide() + ScreenScale(4), comboY)
+                self:SetTall(modelCombo:GetTall())
+            end
+
+            function modelBtn:DoClick()
+                panel.modelPosID = "All"
+                hg.Appearance.OpenModelMenu(self, panel.AppearanceTable and panel.AppearanceTable.AModel, function(modelName)
+                    if not panel.AppearanceTable then return end
+                    panel.AppearanceTable.AModel = modelName
+                    if IsValid(modelCombo) and modelCombo.SetText then
+                        modelCombo:SetText(modelName)
+                    end
+                end, panel.AppearanceTable, function()
+                    panel.modelPosID = "All"
+                end)
+            end
+
+            panel.ModelSelectorBtn = modelBtn
+        end
+    end
+
     -- Рекурсивно ищем все кнопки внутри панели
     local function FindButtons(parent)
         for _, child in ipairs(parent:GetChildren()) do
@@ -1488,8 +1579,6 @@ local function ModifyAppearanceMenu(panel)
                             panel.modelPosID = "Hands"
                         elseif part == "facemap" then
                             panel.modelPosID = "Face"
-                        elseif part == "model" then
-                            panel.modelPosID = "All"
                         end
 
                         -- Определяем текущее значение для этой части
@@ -1505,8 +1594,6 @@ local function ModifyAppearanceMenu(panel)
                             current = panel.AppearanceTable.ABodygroups and panel.AppearanceTable.ABodygroups["HANDS"] or "Default"
                         elseif part == "facemap" then
                             current = panel.AppearanceTable.AFacemap or "Default"
-                        elseif part == "model" then
-                            current = panel.AppearanceTable.AModel
                         end
 
                         -- Колбэк обновления таблицы
@@ -1522,8 +1609,6 @@ local function ModifyAppearanceMenu(panel)
                                 panel.AppearanceTable.ABodygroups["HANDS"] = id
                             elseif part == "facemap" then
                                 panel.AppearanceTable.AFacemap = id
-                            elseif part == "model" then
-                                panel.AppearanceTable.AModel = id
                             end
                         end
 
@@ -1534,10 +1619,6 @@ local function ModifyAppearanceMenu(panel)
                             end)
                         elseif part == "gloves" then
                             CreateGlovesIconMenu(btn, current, onSelect, panel.AppearanceTable, function()
-                                panel.modelPosID = "All"
-                            end)
-                        elseif part == "model" then
-                            hg.Appearance.OpenModelMenu(btn, current, onSelect, panel.AppearanceTable, function()
                                 panel.modelPosID = "All"
                             end)
                         else
