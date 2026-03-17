@@ -117,10 +117,8 @@ local PREVIEW_RENDER_BOUNDS_MAX = Vector(10000, 10000, 10000)
 local function FreezePreviewEntity(ent)
     if not IsValid(ent) then return end
 
-    if not ent.__AppearanceRenderBoundsExpanded then
-        ent:SetRenderBounds(PREVIEW_RENDER_BOUNDS_MIN, PREVIEW_RENDER_BOUNDS_MAX)
-        ent.__AppearanceRenderBoundsExpanded = true
-    end
+    ent:SetRenderBounds(PREVIEW_RENDER_BOUNDS_MIN, PREVIEW_RENDER_BOUNDS_MAX)
+    ent.__AppearanceRenderBoundsExpanded = true
 
     local idleSeq = ent:LookupSequence("idle_suitcase")
     if idleSeq and idleSeq >= 0 then
@@ -128,7 +126,7 @@ local function FreezePreviewEntity(ent)
     end
 
     ent:SetCycle(0)
-    ent:SetPlaybackRate(0.0001)
+    ent:SetPlaybackRate(0)
     ent.AutomaticFrameAdvance = false
     ent:SetAngles(Angle(0, 0, 0))
 
@@ -137,16 +135,42 @@ local function FreezePreviewEntity(ent)
     end
 
     if ent.SetLayerWeight then
-        for layerID = 0, 12 do
+        for layerID = 0, 31 do
             ent:SetLayerWeight(layerID, 0)
         end
     end
 
     if ent.SetLayerPlaybackRate then
-        for layerID = 0, 12 do
-            ent:SetLayerPlaybackRate(layerID, 0.0001)
+        for layerID = 0, 31 do
+            ent:SetLayerPlaybackRate(layerID, 0)
         end
     end
+
+    if ent.GetFlexNum and ent.SetFlexWeight then
+        local flexCount = ent:GetFlexNum() or 0
+        for flexID = 0, math.max(flexCount - 1, 0) do
+            ent:SetFlexWeight(flexID, 0)
+        end
+    end
+
+    if ent.FrameAdvance then
+        ent:FrameAdvance(0)
+    end
+end
+
+local function EnsurePreviewPanelBounds(mdlPanel)
+    if not IsValid(mdlPanel) then return end
+
+    local function ApplyBounds()
+        if not IsValid(mdlPanel) then return end
+        local ent = mdlPanel.Entity
+        if IsValid(ent) then
+            ent:SetRenderBounds(PREVIEW_RENDER_BOUNDS_MIN, PREVIEW_RENDER_BOUNDS_MAX)
+        end
+    end
+
+    ApplyBounds()
+    timer.Simple(0, ApplyBounds)
 end
 
 local function ResolveCurrentModelData(appearanceTable)
@@ -529,6 +553,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         previewModel:Dock(FILL)
         previewModel:DockMargin(2, 2, 2, 2)
         previewModel:SetModel(modelPath)
+        EnsurePreviewPanelBounds(previewModel)
         previewModel:SetAnimated(false)
         previewModel:SetAnimSpeed(0)
         function previewModel:RunAnimation() end
@@ -871,6 +896,7 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
         previewModel:Dock(FILL)
         previewModel:DockMargin(2, 2, 2, 2)
         previewModel:SetModel(modelPath)
+        EnsurePreviewPanelBounds(previewModel)
         previewModel:SetAnimated(false)
         previewModel:SetAnimSpeed(0)
         function previewModel:RunAnimation() end
@@ -1306,6 +1332,7 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
         mdl:Dock(FILL)
         mdl:DockMargin(2, 2, 2, 10)
         mdl:SetModel(currentModelPath)
+        EnsurePreviewPanelBounds(mdl)
         mdl:SetAnimated(false)
         function mdl:RunAnimation() end
 
@@ -1517,6 +1544,7 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
     mdl:Dock(FILL)
     mdl:DockMargin(2, 2, 2, 10)
     mdl:SetModel(modelData.mdl)
+    EnsurePreviewPanelBounds(mdl)
     mdl:SetAnimated(false)
     function mdl:RunAnimation() end
 

@@ -48,10 +48,8 @@ local PREVIEW_RENDER_BOUNDS_MAX = Vector(10000, 10000, 10000)
 local function FreezePreviewEntity(ent)
     if not IsValid(ent) then return end
 
-    if not ent.__AppearanceRenderBoundsExpanded then
-        ent:SetRenderBounds(PREVIEW_RENDER_BOUNDS_MIN, PREVIEW_RENDER_BOUNDS_MAX)
-        ent.__AppearanceRenderBoundsExpanded = true
-    end
+    ent:SetRenderBounds(PREVIEW_RENDER_BOUNDS_MIN, PREVIEW_RENDER_BOUNDS_MAX)
+    ent.__AppearanceRenderBoundsExpanded = true
 
     local idleSeq = ent:LookupSequence("idle_suitcase")
     if idleSeq and idleSeq >= 0 then
@@ -59,7 +57,7 @@ local function FreezePreviewEntity(ent)
     end
 
     ent:SetCycle(0)
-    ent:SetPlaybackRate(0.0001)
+    ent:SetPlaybackRate(0)
     ent.AutomaticFrameAdvance = false
     ent:SetAngles(Angle(0,0,0))
 
@@ -68,16 +66,42 @@ local function FreezePreviewEntity(ent)
     end
 
     if ent.SetLayerWeight then
-        for layerID = 0, 12 do
+        for layerID = 0, 31 do
             ent:SetLayerWeight(layerID, 0)
         end
     end
 
     if ent.SetLayerPlaybackRate then
-        for layerID = 0, 12 do
-            ent:SetLayerPlaybackRate(layerID, 0.0001)
+        for layerID = 0, 31 do
+            ent:SetLayerPlaybackRate(layerID, 0)
         end
     end
+
+    if ent.GetFlexNum and ent.SetFlexWeight then
+        local flexCount = ent:GetFlexNum() or 0
+        for flexID = 0, math.max(flexCount - 1, 0) do
+            ent:SetFlexWeight(flexID, 0)
+        end
+    end
+
+    if ent.FrameAdvance then
+        ent:FrameAdvance(0)
+    end
+end
+
+local function EnsurePreviewPanelBounds(mdlPanel)
+    if not IsValid(mdlPanel) then return end
+
+    local function ApplyBounds()
+        if not IsValid(mdlPanel) then return end
+        local ent = mdlPanel.Entity
+        if IsValid(ent) then
+            ent:SetRenderBounds(PREVIEW_RENDER_BOUNDS_MIN, PREVIEW_RENDER_BOUNDS_MAX)
+        end
+    end
+
+    ApplyBounds()
+    timer.Simple(0, ApplyBounds)
 end
 
 local function ResolveModelDataByName(modelName)
@@ -172,6 +196,7 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
 
         mdl:Dock(FILL)
         mdl:SetModel(modelPath)
+        EnsurePreviewPanelBounds(mdl)
 
         mdl:SetAnimated(false)
         mdl:SetAnimSpeed(0)
@@ -407,6 +432,7 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
         mdl:SetPos(2, 2)
         mdl:SetSize(iconSize - 4, iconSize - 4)
         mdl:SetModel(modelData.mdl)
+        EnsurePreviewPanelBounds(mdl)
         mdl:SetAnimated(false)
         mdl:SetAnimSpeed(0)
         function mdl:RunAnimation() end
