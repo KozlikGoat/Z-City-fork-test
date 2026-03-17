@@ -1300,12 +1300,12 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
         end
 
         local lbl = vgui.Create("DLabel", icon)
-        lbl:Dock(BOTTOM)
-        lbl:SetTall(16)
+        lbl:SetPos(0, ScreenScale(55))
+        lbl:SetSize(ScreenScale(66), ScreenScale(11))
         lbl:SetFont("ZCity_Tiny")
         lbl:SetText(string.NiceName(gloveName))
         lbl:SetTextColor(colors.mainText)
-        lbl:SetContentAlignment(5)
+        lbl:SetContentAlignment(8)
         lbl:SetMouseInputEnabled(false)
 
         function icon:Think()
@@ -1387,6 +1387,21 @@ local function ModelHasFacemapVariants(modelPath)
     return slotVariants and not table.IsEmpty(slotVariants) or false
 end
 
+local function ModelHasFacemapName(modelPath, facemapName)
+    if not modelPath or not facemapName or facemapName == "" then return false end
+    if facemapName == "Default" then return true end
+
+    local modelKey = string.lower(modelPath)
+    local multi = hg.Appearance.MultiFacemaps and hg.Appearance.MultiFacemaps[modelKey]
+    if multi and multi[facemapName] then return true end
+
+    local slot = hg.Appearance.FacemapsModels and hg.Appearance.FacemapsModels[modelKey]
+    if not slot then return false end
+
+    local slotVariants = hg.Appearance.FacemapsSlots and hg.Appearance.FacemapsSlots[slot]
+    return slotVariants and slotVariants[facemapName] ~= nil or false
+end
+
 local function CreateModelIcon(parent, modelName, modelData, appearanceTable, onSelectCallback)
     local pnl = vgui.Create("DButton", parent)
     pnl:SetText("")
@@ -1401,6 +1416,11 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
     local isFemale = modelData.sex == true
     ApplyFacemapCamera(mdl, isFemale)
 
+    local previewAppearance = {
+        AClothes = appearanceTable and appearanceTable.AClothes or {},
+        AFacemap = "Default"
+    }
+
     function mdl:LayoutEntity(ent)
         if not IsValid(ent) then return end
         ent:SetAngles(Angle(0, 0, 0))
@@ -1409,7 +1429,7 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
         ent:SetPlaybackRate(0)
         ent.AutomaticFrameAdvance = false
 
-        ApplyPreviewAppearance(ent, isFemale and 2 or 1, modelData, appearanceTable)
+        ApplyPreviewAppearance(ent, isFemale and 2 or 1, modelData, previewAppearance)
     end
 
     function pnl:DoClick()
@@ -1421,12 +1441,12 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
     end
 
     local lbl = vgui.Create("DLabel", pnl)
-    lbl:Dock(BOTTOM)
-    lbl:SetTall(14)
+    lbl:SetPos(0, ScreenScale(70))
+    lbl:SetSize(ScreenScale(80), ScreenScale(12))
     lbl:SetFont("ZCity_Tiny")
     lbl:SetText(modelName)
     lbl:SetTextColor(colors.mainText)
-    lbl:SetContentAlignment(5)
+    lbl:SetContentAlignment(8)
     lbl:SetMouseInputEnabled(false)
 
     function pnl:Think()
@@ -1554,6 +1574,28 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
 
     return menu
 end
+
+hook.Add("Think", "ZCityAppearanceMod_KeepChosenFacemap", function()
+    local editTable = hg.Appearance and hg.Appearance.CurrentEditTable
+    if not editTable then return end
+
+    local pending = editTable.__AppearancePendingFacemap
+    if not pending or not pending.model or not pending.facemap then return end
+
+    if editTable.AModel ~= pending.model then return end
+
+    local modelData = (hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[1] and hg.Appearance.PlayerModels[1][pending.model])
+        or (hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[2] and hg.Appearance.PlayerModels[2][pending.model])
+    local modelPath = modelData and modelData.mdl
+
+    if ModelHasFacemapName(modelPath, pending.facemap) then
+        if editTable.AFacemap == "Default" or editTable.AFacemap == nil or editTable.AFacemap == "" then
+            editTable.AFacemap = pending.facemap
+        end
+    end
+
+    editTable.__AppearancePendingFacemap = nil
+end)
 
 
 

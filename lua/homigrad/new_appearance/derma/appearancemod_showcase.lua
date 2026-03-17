@@ -192,8 +192,7 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
         label:SetContentAlignment(5)
         label:SetTextColor(Color(255,255,255))
 
-        function pnl:OnMousePressed(mouseCode)
-            if mouseCode ~= MOUSE_LEFT then return end
+        local function ApplyShowcaseChoice()
             if not editTable then return end
             editTable.AClothes = editTable.AClothes or {}
             editTable.AClothes.main = clothesID
@@ -201,6 +200,21 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
             editTable.AClothes.boots = clothesID
             surface.PlaySound("player/clothes_generic_foley_0" .. math.random(5) .. ".wav")
             frame:Close()
+        end
+
+        function pnl:OnMousePressed(mouseCode)
+            if mouseCode ~= MOUSE_LEFT then return end
+            ApplyShowcaseChoice()
+        end
+
+        function mdl:DoClick()
+            ApplyShowcaseChoice()
+        end
+
+        label:SetMouseInputEnabled(true)
+        function label:OnMousePressed(mouseCode)
+            if mouseCode ~= MOUSE_LEFT then return end
+            ApplyShowcaseChoice()
         end
 
         grid:AddItem(pnl)
@@ -390,16 +404,34 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
         label:SetContentAlignment(5)
         label:SetTextColor(Color(255, 255, 255))
 
-        function iconPanel:OnMousePressed(mouseCode)
-            if mouseCode ~= MOUSE_LEFT then return end
+        local function ApplyFacemapChoice()
             if not editTable then return end
 
             editTable.AModel = modelName
             editTable.AFacemap = varName
+            editTable.__AppearancePendingFacemap = {
+                model = modelName,
+                facemap = varName
+            }
             EnsureValidClothesForModel(editTable, modelData)
 
             surface.PlaySound("player/weapon_draw_0" .. math.random(2, 5) .. ".wav")
             frame:Close()
+        end
+
+        function iconPanel:OnMousePressed(mouseCode)
+            if mouseCode ~= MOUSE_LEFT then return end
+            ApplyFacemapChoice()
+        end
+
+        function mdl:DoClick()
+            ApplyFacemapChoice()
+        end
+
+        label:SetMouseInputEnabled(true)
+        function label:OnMousePressed(mouseCode)
+            if mouseCode ~= MOUSE_LEFT then return end
+            ApplyFacemapChoice()
         end
 
         return iconPanel
