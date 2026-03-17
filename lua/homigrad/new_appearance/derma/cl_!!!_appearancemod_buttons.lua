@@ -1652,6 +1652,38 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
     return menu
 end
 
+hook.Add("Think", "ZCityAppearanceMod_KeepChosenFacemap", function()
+    local editTable = hg.Appearance and hg.Appearance.CurrentEditTable
+    if not editTable then return end
+
+    local pending = editTable.__AppearancePendingFacemap
+    if not pending or not pending.model or not pending.facemap then return end
+
+    if pending.applyAt and CurTime() < pending.applyAt then return end
+
+    if editTable.AModel ~= pending.model then return end
+
+    local modelData = (hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[1] and hg.Appearance.PlayerModels[1][pending.model])
+        or (hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[2] and hg.Appearance.PlayerModels[2][pending.model])
+    local modelPath = modelData and modelData.mdl
+
+    if ModelHasFacemapName(modelPath, pending.facemap) then
+        if editTable.AFacemap ~= pending.facemap then
+            editTable.AFacemap = pending.facemap
+        end
+        if editTable.AFacemap == pending.facemap then
+            editTable.__AppearancePendingFacemap = nil
+            return
+        end
+    end
+
+    pending.retries = (pending.retries or 1) - 1
+    pending.applyAt = CurTime() + 0.05
+    if pending.retries <= 0 then
+        editTable.__AppearancePendingFacemap = nil
+    end
+end)
+
 
 
 
