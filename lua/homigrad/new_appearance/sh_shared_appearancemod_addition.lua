@@ -26,6 +26,13 @@ hg.Appearance.ModelFaceSlots = hg.Appearance.ModelFaceSlots or {}
 -- ============================================================
 
 
+hg.Appearance.PlayerModels = hg.Appearance.PlayerModels or { [1] = {}, [2] = {} }
+hg.Appearance.Clothes = hg.Appearance.Clothes or { [1] = {}, [2] = {} }
+hg.Appearance.ClothesDesc = hg.Appearance.ClothesDesc or {}
+hg.Appearance.FacemapsSlots = hg.Appearance.FacemapsSlots or {}
+hg.Appearance.FacemapsModels = hg.Appearance.FacemapsModels or {}
+
+
 -- Добавление новых моделей
 local function AddCustomModels()
     -- Убеждаемся, что таблицы существуют
@@ -1069,6 +1076,7 @@ local function AddCustomBodygroups()
     -- ... и так далее
 end
 
+
 -- Вызов всех функций добавления
 -- Лучше всего вызывать их в хуке, чтобы быть уверенным, что основные таблицы уже созданы.
 hook.Add("Initialize", "CustomAppearance_Init", function()
@@ -1082,5 +1090,17 @@ end)
 hook.Add("ZPointshopLoaded", "CustomAppearance_AddBodygroups", function()
     AddCustomBodygroups()
 end)
+
+local function ZCity_AddAllCustomContent()
+    AddCustomModels()
+    AddCustomClothes()
+    AddCustomFacemaps()
+end
+
+
+hook.Add("InitPostEntity", "ZCity_LoadCustomAppearance", function()
+    ZCity_AddAllCustomContent()
+end)
+
 
 print("[ZCityAppearanceMod] Дополнение загружено!")
