@@ -124,6 +124,7 @@ function SWEP:Shoot(override)
 		primary.Automatic = false
 		return false
 	end
+
 	local owner = self:GetOwner()
 	local gun = self:GetWeaponEntity()
 	
@@ -146,14 +147,30 @@ function SWEP:Shoot(override)
 	if SERVER then
 		local dir = ang:Forward()
 		
-		self:GetOwner():LagCompensation(true)
-        local tr = util.TraceLine( {
-            start = pos,
-            endpos = pos + dir * 220,
-            filter = {self},
-            mask = MASK_SHOT
-        } )
-		self:GetOwner():LagCompensation(false)
+		local tr
+		if owner:IsPlayer() then
+			owner:LagCompensation(true)
+
+			tr = util.TraceLine({
+				start = pos,
+				endpos = pos + dir * 220,
+				filter = {self},
+				mask = MASK_SHOT
+			})
+		else
+			self.Primary.Wait = 0.5
+
+			tr = util.TraceLine({
+				start = pos,
+				endpos = pos + dir * 220,
+				filter = {self, owner},
+				mask = MASK_SHOT
+			})
+		end
+
+		if owner:IsPlayer() then
+			owner:LagCompensation(true)
+		end
 
 		if tr.Entity then
             local ent = tr.Entity
@@ -161,10 +178,10 @@ function SWEP:Shoot(override)
 			if not ent:IsPlayer() and not ent:IsRagdoll() then return end
             if IsValid(ent.FakeRagdoll) then return end
             
-			//if ent == hg.GetCurrentCharacter( self:GetOwner() ) then return end
+			//if ent == hg.GetCurrentCharacter( owner ) then return end
 			local d = DamageInfo()
 			d:SetDamage(5)
-			d:SetAttacker(self:GetOwner())
+			d:SetAttacker(owner)
 			d:SetInflictor(self)
 			d:SetDamageType(DMG_SLASH) 
 			d:SetDamagePosition(tr.HitPos)
@@ -227,10 +244,10 @@ function SWEP:Shoot(override)
 					end)
 				end
 			end)
+
 			--чзх добавить возможность тазерить мощнее при нажатии лкм
 			local i = 1
 			local max = math.Round(time * 80)
-			local owner = self:GetOwner()
 			timer.Create("Tasering"..ent:EntIndex(), 0.01, max,function()
 				i = i + 1
 				

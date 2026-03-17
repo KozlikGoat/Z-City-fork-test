@@ -210,7 +210,7 @@ if CLIENT then
 
                     return -1
                 end,
-                [2] = "Change Posture\n(MOUSE2 to select)" 
+                [2] = "Change Posture\nRMB - Menu"
             },
             [2] = {
                 [1] = function()
@@ -296,7 +296,7 @@ if CLIENT then
 
                 return -1
             end,
-            [2] = "Weapon Manipulations Menu"
+            [2] = "Weapon Menu"
         }
     end)
 end

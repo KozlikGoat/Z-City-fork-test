@@ -128,7 +128,7 @@ function SWEP:MakeShell(shell, pos, ang, vel)
 			end
 
             if istable(t.s) then
-                ent:EmitSound(table.Random(t.s), 60, 100)   
+                ent:EmitSound(t.s[math.random(#t.s)], 60, 100)   
             end
         end
     end)

@@ -80,7 +80,8 @@ local math_random, math_Rand = math.random, math.Rand
 	end)--]]
 
 	hook.Add("CreateEntityRagdoll", "npcloot", function(ent, rag)
-		local loot = lootNPCs[ent:GetClass()]
+		local class = ent:GetClass()
+		local loot = lootNPCs[class]
 
 		rag:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 		if IsValid(ent) and IsValid(rag) and ent:IsNPC() and loot then
@@ -112,6 +113,14 @@ local math_random, math_Rand = math.random, math.Rand
 				rag.inventory.Weapons = rag.inventory.Weapons or {}
 				rag.inventory.Weapons[wep] = weapon and weapon.GetInfo and weapon:GetInfo() or true
 				rag:SetNetVar("Inventory", rag.inventory)
+			end
+
+			if nameNPCs[class] then
+				ent:SetNWString("PlayerName", nameNPCs[class][1])
+				ent:SetNWVector("PlayerColor", nameNPCs[class][2])
+				ent.GetPlayerName = function()
+					return nameNPCs[class][1]
+				end
 			end
 		end
 	end)
@@ -388,4 +397,24 @@ local math_random, math_Rand = math.random, math.Rand
 			end
 		end
 	end)
+--//
+
+--\\ Give our guns to NPCs
+	local function addNPCweps()
+		local weaponlist = weapons.GetList()
+		local based = weapons.IsBasedOn -- RESPECT
+		for _, wep in ipairs(weaponlist) do
+			local classname = wep.ClassName
+			if (based(classname, "homigrad_base") or based(classname, "weapon_melee") or classname == "weapon_melee" or based(classname, "weapon_medkit_sh") or classname == "weapon_medkit_sh") and wep.Spawnable then
+				list.Add("NPCUsableWeapons", { 
+					class = classname,
+					title = wep.PrintName,
+					category = wep.Category or "ZCity Other"
+				})
+			end
+		end
+	end
+
+	hook.Add("Initialize", "InitAddNPCweps", addNPCweps)
+	hook.Add("InitPostEntity", "InitPostAddNPCweps", addNPCweps)
 --//
