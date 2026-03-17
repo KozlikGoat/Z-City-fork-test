@@ -12,6 +12,32 @@ local ICON_H = 310
 local FACEMAP_ICON_SIZE = 128
 local FACEMAP_ICON_SPACING = 6
 local FACEMAP_SECTION_HEADER_PAD = math.floor(FACEMAP_ICON_SIZE * (((hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.allFacemapsHeaderGapFactor) or 0.43)))
+local scrollPositions = hg.Appearance.MenuScrollPositions or {}
+hg.Appearance.MenuScrollPositions = scrollPositions
+
+local function ResolveModelDataByName(modelName)
+    if not modelName then return nil, nil end
+    local male = hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[1] and hg.Appearance.PlayerModels[1][modelName]
+    if male then return male, 1 end
+    local female = hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[2] and hg.Appearance.PlayerModels[2][modelName]
+    if female then return female, 2 end
+    return nil, nil
+end
+
+local function EnsureValidClothesForModel(appearanceTable, modelData)
+    if not appearanceTable or not modelData then return end
+    local sexIndex = modelData.sex and 2 or 1
+    local clothesBySex = hg.Appearance.Clothes and hg.Appearance.Clothes[sexIndex]
+    if not clothesBySex then return end
+
+    appearanceTable.AClothes = appearanceTable.AClothes or {}
+    for _, slot in ipairs({"main", "pants", "boots"}) do
+        local selected = appearanceTable.AClothes[slot]
+        if not selected or not clothesBySex[selected] then
+            appearanceTable.AClothes[slot] = clothesBySex.normal and "normal" or next(clothesBySex)
+        end
+    end
+end
 
 --[[
 local ICON_W = 150
@@ -40,6 +66,13 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
 
     local scroll = vgui.Create("DScrollPanel", frame)
     scroll:Dock(FILL)
+
+    if scrollPositions.showcase then
+        timer.Simple(0, function()
+            if not IsValid(scroll) then return end
+            scroll:GetVBar():SetScroll(scrollPositions.showcase)
+        end)
+    end
 
     local grid = vgui.Create("DGrid", scroll)
     grid:Dock(TOP)
@@ -81,11 +114,10 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
         mdl:SetAnimated(false)
         mdl:SetAnimSpeed(0)
 
-        ent:SetCycle(0)
         ----------------------------------------------------------------
         --                КАМЕРА ИКОНКИ (РЕДАКТИРУЙ ЗДЕСЬ)
         ----------------------------------------------------------------
-            
+
         -- Если модель слишком маленькая / большая — меняй значения
         -- CamPos = расстояние камеры
         -- LookAt = точка куда камера смотрит
@@ -169,8 +201,40 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
         label:SetContentAlignment(5)
         label:SetTextColor(Color(255,255,255))
 
+        local function ApplyShowcaseChoice()
+            if not editTable then return end
+            editTable.AClothes = editTable.AClothes or {}
+            editTable.AClothes.main = clothesID
+            editTable.AClothes.pants = clothesID
+            editTable.AClothes.boots = clothesID
+            surface.PlaySound("player/clothes_generic_foley_0" .. math.random(5) .. ".wav")
+            frame:Close()
+        end
+
+        function pnl:OnMousePressed(mouseCode)
+            if mouseCode ~= MOUSE_LEFT then return end
+            ApplyShowcaseChoice()
+        end
+
+        function mdl:DoClick()
+            ApplyShowcaseChoice()
+        end
+
+        label:SetMouseInputEnabled(true)
+        function label:OnMousePressed(mouseCode)
+            if mouseCode ~= MOUSE_LEFT then return end
+            ApplyShowcaseChoice()
+        end
+
         grid:AddItem(pnl)
 
+    end
+
+    function frame:OnClose()
+        if IsValid(scroll) then
+            local vbar = scroll:GetVBar()
+            scrollPositions.showcase = vbar and vbar:GetScroll() or 0
+        end
     end
 
 end
@@ -239,6 +303,9 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
     local editTable = appearanceTable or hg.Appearance.CurrentEditTable
     if not editTable then return end
 
+    local currentModelData = ResolveModelDataByName(editTable.AModel)
+    EnsureValidClothesForModel(editTable, currentModelData)
+
     local frame = vgui.Create("DFrame")
     frame:SetSize(ScrW(), ScrH())
     frame:SetTitle("")
@@ -255,6 +322,13 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
     local scroll = vgui.Create("DScrollPanel", frame)
     scroll:Dock(FILL)
 
+    if scrollPositions.allFacemaps then
+        timer.Simple(0, function()
+            if not IsValid(scroll) then return end
+            scroll:GetVBar():SetScroll(scrollPositions.allFacemaps)
+        end)
+    end
+
     local content = vgui.Create("DIconLayout", scroll)
     content:Dock(TOP)
     content:SetSpaceY(8)
@@ -263,7 +337,7 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
     local iconSpacing = FACEMAP_ICON_SPACING
     local clothesSelection = editTable.AClothes or {}
 
-    local function CreateFacemapPreviewIcon(parent, modelData, variants, varName)
+    local function CreateFacemapPreviewIcon(parent, modelData, variants, varName, modelName)
         local iconPanel = vgui.Create("DPanel", parent)
         iconPanel:SetSize(iconSize, iconSize + 18)
 
@@ -353,6 +427,41 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
         label:SetContentAlignment(5)
         label:SetTextColor(Color(255, 255, 255))
 
+        local function ApplyFacemapChoice()
+            if not editTable then return end
+
+            editTable.AModel = modelName
+            editTable.AFacemap = varName
+            if hg.Appearance.QueueDelayedFacemapApply then
+                hg.Appearance.QueueDelayedFacemapApply(editTable, modelName, varName)
+            else
+                timer.Simple(0.05, function()
+                    if not editTable then return end
+                    if editTable.AModel ~= modelName then return end
+                    editTable.AFacemap = varName
+                end)
+            end
+            EnsureValidClothesForModel(editTable, modelData)
+
+            surface.PlaySound("player/weapon_draw_0" .. math.random(2, 5) .. ".wav")
+            frame:Close()
+        end
+
+        function iconPanel:OnMousePressed(mouseCode)
+            if mouseCode ~= MOUSE_LEFT then return end
+            ApplyFacemapChoice()
+        end
+
+        function mdl:DoClick()
+            ApplyFacemapChoice()
+        end
+
+        label:SetMouseInputEnabled(true)
+        function label:OnMousePressed(mouseCode)
+            if mouseCode ~= MOUSE_LEFT then return end
+            ApplyFacemapChoice()
+        end
+
         return iconPanel
     end
 
@@ -392,7 +501,7 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
         end
 
         for _, varName in ipairs(sortedNames) do
-            local icon = CreateFacemapPreviewIcon(section, modelData, variants, varName)
+            local icon = CreateFacemapPreviewIcon(section, modelData, variants, varName, modelName)
             row:AddItem(icon)
         end
 
@@ -402,6 +511,13 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
     for _, sex in ipairs({1, 2}) do
         for modelName, modelData in SortedPairs(hg.Appearance.PlayerModels[sex] or {}) do
             BuildModelSection(modelName, modelData)
+        end
+    end
+
+    function frame:OnClose()
+        if IsValid(scroll) then
+            local vbar = scroll:GetVBar()
+            scrollPositions.allFacemaps = vbar and vbar:GetScroll() or 0
         end
     end
 end
