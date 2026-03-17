@@ -1216,7 +1216,7 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
     grid:Dock(TOP)
     grid:SetCols(GLOVES_MENU_PREVIEW_COLS)
     grid:SetColWide(ScreenScale(68))
-    grid:SetRowHeight(ScreenScale(72))
+    grid:SetRowHeight(ScreenScale(66))
 
     local lply = LocalPlayer()
     local selectedIcon
@@ -1227,11 +1227,11 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
         if gloveData and gloveData[2] and not hasAccess and not hasItem then continue end
         local icon = vgui.Create("DButton")
         icon:SetText("")
-        icon:SetSize(ScreenScale(66), ScreenScale(68))
+        icon:SetSize(ScreenScale(66), ScreenScale(62))
 
         local mdl = vgui.Create("DModelPanel", icon)
         mdl:Dock(FILL)
-        mdl:DockMargin(2, 2, 2, 14)
+        mdl:DockMargin(2, 2, 2, 10)
         mdl:SetModel(currentModelPath)
         mdl:SetAnimated(false)
 
@@ -1300,8 +1300,8 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
         end
 
         local lbl = vgui.Create("DLabel", icon)
-        lbl:SetPos(0, ScreenScale(55))
-        lbl:SetSize(ScreenScale(66), ScreenScale(11))
+        lbl:SetPos(0, ScreenScale(50))
+        lbl:SetSize(ScreenScale(66), ScreenScale(10))
         lbl:SetFont("ZCity_Tiny")
         lbl:SetText(string.NiceName(gloveName))
         lbl:SetTextColor(colors.mainText)
@@ -1402,14 +1402,27 @@ local function ModelHasFacemapName(modelPath, facemapName)
     return slotVariants and slotVariants[facemapName] ~= nil or false
 end
 
+local function QueueDelayedFacemapApply(editTable, modelName, facemapName)
+    if not editTable or not modelName or not facemapName then return end
+
+    editTable.__AppearancePendingFacemap = {
+        model = modelName,
+        facemap = facemapName,
+        applyAt = CurTime() + 0.08,
+        retries = 8
+    }
+end
+
+hg.Appearance.QueueDelayedFacemapApply = QueueDelayedFacemapApply
+
 local function CreateModelIcon(parent, modelName, modelData, appearanceTable, onSelectCallback)
     local pnl = vgui.Create("DButton", parent)
     pnl:SetText("")
-    pnl:SetSize(ScreenScale(80), ScreenScale(84))
+    pnl:SetSize(ScreenScale(80), ScreenScale(76))
 
     local mdl = vgui.Create("DModelPanel", pnl)
     mdl:Dock(FILL)
-    mdl:DockMargin(2, 2, 2, 14)
+    mdl:DockMargin(2, 2, 2, 10)
     mdl:SetModel(modelData.mdl)
     mdl:SetAnimated(false)
 
@@ -1441,8 +1454,8 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
     end
 
     local lbl = vgui.Create("DLabel", pnl)
-    lbl:SetPos(0, ScreenScale(70))
-    lbl:SetSize(ScreenScale(80), ScreenScale(12))
+    lbl:SetPos(0, ScreenScale(62))
+    lbl:SetSize(ScreenScale(80), ScreenScale(10))
     lbl:SetFont("ZCity_Tiny")
     lbl:SetText(modelName)
     lbl:SetTextColor(colors.mainText)
@@ -1531,6 +1544,7 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
 
     local content = vgui.Create("DIconLayout", scroll)
     content:Dock(TOP)
+    content:SetSpaceX(0)
     content:SetSpaceY(ScreenScale(3))
 
     local function addSection(title, sexIndex)
@@ -1542,10 +1556,10 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
 
         local grid = vgui.Create("DGrid", content)
         grid:SetCols(MODEL_MENU_PREVIEW_COLS)
-        local availableWidth = menu:GetWide() - ScreenScale(14) - ScreenScale(8)
+        local availableWidth = menu:GetWide() - ScreenScale(14)
         local colWide = math.max(ScreenScale(80), math.floor(availableWidth / MODEL_MENU_PREVIEW_COLS))
         grid:SetColWide(colWide)
-        grid:SetRowHeight(ScreenScale(86))
+        grid:SetRowHeight(ScreenScale(78))
         grid:SetSize(colWide * MODEL_MENU_PREVIEW_COLS, ScreenScale(4))
 
         local shownCount = 0
@@ -1562,7 +1576,7 @@ function hg.Appearance.OpenModelMenu(parent, currentSelection, onSelectCallback,
         end
 
         local rows = math.max(1, math.ceil(shownCount / MODEL_MENU_PREVIEW_COLS))
-        grid:SetTall(rows * ScreenScale(86))
+        grid:SetTall(rows * ScreenScale(78))
     end
 
     addSection("Male", 1)
@@ -1582,6 +1596,8 @@ hook.Add("Think", "ZCityAppearanceMod_KeepChosenFacemap", function()
     local pending = editTable.__AppearancePendingFacemap
     if not pending or not pending.model or not pending.facemap then return end
 
+    if pending.applyAt and CurTime() < pending.applyAt then return end
+
     if editTable.AModel ~= pending.model then return end
 
     local modelData = (hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[1] and hg.Appearance.PlayerModels[1][pending.model])
@@ -1589,12 +1605,20 @@ hook.Add("Think", "ZCityAppearanceMod_KeepChosenFacemap", function()
     local modelPath = modelData and modelData.mdl
 
     if ModelHasFacemapName(modelPath, pending.facemap) then
-        if editTable.AFacemap == "Default" or editTable.AFacemap == nil or editTable.AFacemap == "" then
+        if editTable.AFacemap ~= pending.facemap then
             editTable.AFacemap = pending.facemap
+        end
+        if editTable.AFacemap == pending.facemap then
+            editTable.__AppearancePendingFacemap = nil
+            return
         end
     end
 
-    editTable.__AppearancePendingFacemap = nil
+    pending.retries = (pending.retries or 1) - 1
+    pending.applyAt = CurTime() + 0.05
+    if pending.retries <= 0 then
+        editTable.__AppearancePendingFacemap = nil
+    end
 end)
 
 

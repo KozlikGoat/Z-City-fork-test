@@ -409,10 +409,14 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
 
             editTable.AModel = modelName
             editTable.AFacemap = varName
-            editTable.__AppearancePendingFacemap = {
-                model = modelName,
-                facemap = varName
-            }
+            if hg.Appearance.QueueDelayedFacemapApply then
+                hg.Appearance.QueueDelayedFacemapApply(editTable, modelName, varName)
+            else
+                editTable.__AppearancePendingFacemap = {
+                    model = modelName,
+                    facemap = varName
+                }
+            end
             EnsureValidClothesForModel(editTable, modelData)
 
             surface.PlaySound("player/weapon_draw_0" .. math.random(2, 5) .. ".wav")
