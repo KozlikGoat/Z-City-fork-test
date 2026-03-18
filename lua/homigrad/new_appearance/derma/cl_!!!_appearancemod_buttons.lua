@@ -338,6 +338,47 @@ local function ApplyPreviewAppearance(ent, sexIndex, modelData, appearanceTable)
     end
 end
 
+local function ApplyPreviewBodygroups(ent, sexIndex, appearanceTable)
+    if not IsValid(ent) or not appearanceTable then return end
+
+    local selectedBodygroups = appearanceTable.ABodygroups
+    if not selectedBodygroups then return end
+
+    local availableBodygroups = hg.Appearance.Bodygroups or {}
+    for _, bg in ipairs(ent:GetBodyGroups() or {}) do
+        local bodygroupName = bg.name
+        local selectedVariant = selectedBodygroups[bodygroupName]
+        if not selectedVariant then continue end
+
+        local bodygroupBySex = availableBodygroups[bodygroupName] and availableBodygroups[bodygroupName][sexIndex]
+        local bodygroupData = bodygroupBySex and bodygroupBySex[selectedVariant]
+        if not bodygroupData then continue end
+
+        local pointItem = bodygroupData.ID and hg.PointShop and hg.PointShop.Items and hg.PointShop.Items[bodygroupData.ID]
+        local pointData = pointItem and pointItem.DATA
+        if pointData then
+            for subMatIndex, subMatPath in pairs(pointData) do
+                local matIndex = tonumber(subMatIndex)
+                if matIndex ~= nil and isstring(subMatPath) and subMatPath ~= "" then
+                    ent:SetSubMaterial(matIndex, subMatPath)
+                end
+            end
+        end
+
+        local bgValue = bodygroupData[1]
+        if not bgValue then continue end
+
+        local submodels = bg.submodels or {}
+        for subIndex = 0, #submodels do
+            local subModel = submodels[subIndex]
+            if subModel == bgValue then
+                ent:SetBodygroup(bg.id, subIndex)
+                break
+            end
+        end
+    end
+end
+
 -- Функция создания стилизованного скролла (если её нет в оригинале)
 if not CreateStyledScrollPanel then
     function CreateStyledScrollPanel(parent)
@@ -665,6 +706,8 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
                     end
                 end
             end
+
+            ApplyPreviewBodygroups(ent, sex, appearanceTable)
             ent:SetColor(Color(255,255,255))
             ent.__AppearanceFrozenClothes = clothesId
         end
