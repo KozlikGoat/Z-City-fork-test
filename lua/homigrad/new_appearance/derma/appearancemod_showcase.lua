@@ -14,6 +14,23 @@ local FACEMAP_ICON_SPACING = 6
 local FACEMAP_SECTION_HEADER_PAD = math.floor(FACEMAP_ICON_SIZE * (((hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.allFacemapsHeaderGapFactor) or 0.43)))
 local scrollPositions = hg.Appearance.MenuScrollPositions or {}
 hg.Appearance.MenuScrollPositions = scrollPositions
+local WHITE_PLAYER_COLOR = Vector(1, 1, 1)
+
+local function ForcePreviewPlayerColor(ent)
+    if not IsValid(ent) then return end
+
+    if ent.SetPlayerColor then
+        ent:SetPlayerColor(WHITE_PLAYER_COLOR)
+    end
+
+    if ent.SetNWVector then
+        ent:SetNWVector("PlayerColor", WHITE_PLAYER_COLOR)
+    end
+
+    ent.GetPlayerColor = ent.GetPlayerColor or function()
+        return WHITE_PLAYER_COLOR
+    end
+end
 
 local function RestoreScrollPositionDelayed(scroll, value)
     if not IsValid(scroll) or value == nil then return end
@@ -230,6 +247,7 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
         function mdl:LayoutEntity(ent)
             if not IsValid(ent) then return end
             FreezePreviewEntity(ent)
+            ForcePreviewPlayerColor(ent)
 
             if ent.__AppearanceFrozenShowcase then return end
 
@@ -446,6 +464,7 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
         function mdl:LayoutEntity(ent)
             if not IsValid(ent) then return end
             FreezePreviewEntity(ent)
+            ForcePreviewPlayerColor(ent)
 
             if ent.__AppearanceFrozenFacemapAll and ent.__AppearanceFrozenFacemapAll == varName then return end
 
