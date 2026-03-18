@@ -84,6 +84,106 @@ local function PaintSelectionIcon(panel, w, h, isSelected, isHovered)
     surface.DrawOutlinedRect(0, 0, w, h, isSelected and 2 or 1)
 end
 
+local WHITE_PLAYER_COLOR = Vector(1, 1, 1)
+
+local function ForcePreviewPlayerColor(ent)
+    if not IsValid(ent) then return end
+
+    if ent.SetPlayerColor then
+        ent:SetPlayerColor(WHITE_PLAYER_COLOR)
+    end
+
+    if ent.SetNWVector then
+        ent:SetNWVector("PlayerColor", WHITE_PLAYER_COLOR)
+    end
+
+    ent.GetPlayerColor = ent.GetPlayerColor or function()
+        return WHITE_PLAYER_COLOR
+    end
+end
+
+local function IsChildPanelOf(panel, parent)
+    while IsValid(panel) do
+        if panel == parent then
+            return true
+        end
+
+        panel = panel:GetParent()
+    end
+
+    return false
+end
+
+local function OpenAppearanceColorMenu(anchorPanel, currentColor, onColorChanged)
+    if not IsValid(anchorPanel) then return end
+
+    local colorMenu = vgui.Create("DFrame")
+    colorMenu:SetTitle("Select Color")
+    colorMenu:SetSize(ScreenScale(120), ScreenScale(140))
+
+    local x, y = anchorPanel:LocalToScreen(0, 0)
+    x = x + anchorPanel:GetWide() + ScreenScale(5)
+    if x + colorMenu:GetWide() > ScrW() then
+        x = x - colorMenu:GetWide() - anchorPanel:GetWide() - ScreenScale(10)
+    end
+
+    if y + colorMenu:GetTall() > ScrH() then
+        y = ScrH() - colorMenu:GetTall() - ScreenScale(5)
+    end
+
+    colorMenu:SetPos(x, y)
+    colorMenu:MakePopup()
+    colorMenu:SetDraggable(false)
+
+    function colorMenu:OnFocusChanged(gained)
+        if gained then return end
+
+        timer.Simple(0, function()
+            if not IsValid(self) then return end
+
+            local focusedPanel = vgui.GetKeyboardFocus()
+            local hoveredPanel = vgui.GetHoveredPanel()
+            if IsChildPanelOf(focusedPanel, self) or IsChildPanelOf(hoveredPanel, self) then return end
+
+            self:Close()
+        end)
+    end
+
+    function colorMenu:Paint(w, h)
+        draw.RoundedBox(8, 0, 0, w, h, Color(15, 15, 20, 250))
+        surface.SetDrawColor(colors.scrollbarBorder)
+        surface.DrawOutlinedRect(0, 0, w, h, 2)
+    end
+
+    local colorMixer = vgui.Create("DColorMixer", colorMenu)
+    colorMixer:Dock(FILL)
+    colorMixer:DockMargin(ScreenScale(4), ScreenScale(4), ScreenScale(4), ScreenScale(4))
+    colorMixer:SetColor(currentColor or Color(255, 255, 255))
+
+    function colorMixer:ValueChanged(clr)
+        if onColorChanged then
+            onColorChanged(clr)
+        end
+    end
+
+    local closeBtn = vgui.Create("DButton", colorMenu)
+    closeBtn:Dock(BOTTOM)
+    closeBtn:SetTall(ScreenScale(16))
+    closeBtn:DockMargin(ScreenScale(4), 0, ScreenScale(4), ScreenScale(4))
+    closeBtn:SetText("Close")
+    closeBtn:SetFont("ZCity_Tiny")
+    function closeBtn:Paint(w, h)
+        draw.RoundedBox(4, 0, 0, w, h, colors.secondary)
+        surface.SetDrawColor(colors.scrollbarBorder)
+        surface.DrawOutlinedRect(0, 0, w, h, 1)
+    end
+    function closeBtn:DoClick()
+        colorMenu:Close()
+    end
+
+    return colorMenu
+end
+
 local function ApplyFacemapCamera(previewModel, isFemale)
     if not IsValid(previewModel) then return end
 
@@ -238,6 +338,47 @@ local function ApplyPreviewAppearance(ent, sexIndex, modelData, appearanceTable)
     end
 end
 
+local function ApplyPreviewBodygroups(ent, sexIndex, appearanceTable)
+    if not IsValid(ent) or not appearanceTable then return end
+
+    local selectedBodygroups = appearanceTable.ABodygroups
+    if not selectedBodygroups then return end
+
+    local availableBodygroups = hg.Appearance.Bodygroups or {}
+    for _, bg in ipairs(ent:GetBodyGroups() or {}) do
+        local bodygroupName = bg.name
+        local selectedVariant = selectedBodygroups[bodygroupName]
+        if not selectedVariant then continue end
+
+        local bodygroupBySex = availableBodygroups[bodygroupName] and availableBodygroups[bodygroupName][sexIndex]
+        local bodygroupData = bodygroupBySex and bodygroupBySex[selectedVariant]
+        if not bodygroupData then continue end
+
+        local pointItem = bodygroupData.ID and hg.PointShop and hg.PointShop.Items and hg.PointShop.Items[bodygroupData.ID]
+        local pointData = pointItem and pointItem.DATA
+        if pointData then
+            for subMatIndex, subMatPath in pairs(pointData) do
+                local matIndex = tonumber(subMatIndex)
+                if matIndex ~= nil and isstring(subMatPath) and subMatPath ~= "" then
+                    ent:SetSubMaterial(matIndex, subMatPath)
+                end
+            end
+        end
+
+        local bgValue = bodygroupData[1]
+        if not bgValue then continue end
+
+        local submodels = bg.submodels or {}
+        for subIndex = 0, #submodels do
+            local subModel = submodels[subIndex]
+            if subModel == bgValue then
+                ent:SetBodygroup(bg.id, subIndex)
+                break
+            end
+        end
+    end
+end
+
 -- Функция создания стилизованного скролла (если её нет в оригинале)
 if not CreateStyledScrollPanel then
     function CreateStyledScrollPanel(parent)
@@ -293,14 +434,6 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     menu:SetDraggable(false)
     menu:ShowCloseButton(true)
 
-    local function IsPanelInsideMenu(panel)
-        while IsValid(panel) do
-            if panel == menu then return true end
-            panel = panel:GetParent()
-        end
-        return false
-    end
-
     function menu:OnFocusChanged(gained)
         if gained then return end
         timer.Simple(0, function()
@@ -309,7 +442,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
             local focusedPanel = vgui.GetKeyboardFocus()
             local hoveredPanel = vgui.GetHoveredPanel()
 
-            if IsPanelInsideMenu(focusedPanel) or IsPanelInsideMenu(hoveredPanel) then return end
+            if IsChildPanelOf(focusedPanel, menu) or IsChildPanelOf(hoveredPanel, menu) then return end
             self:Close()
         end)
     end
@@ -363,24 +496,6 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
     grid:SetCols(MENU_PREVIEW_COLS)
     grid:SetColWide(ScreenScale(53))
     grid:SetRowHeight(ScreenScale(56))
-
-    local clothesEntries = {}
-    local selectedIcon
-
-    local function NormalizeSearchValue(value)
-        local normalized = string.lower(value or "")
-        normalized = string.gsub(normalized, "_", " ")
-        normalized = string.gsub(normalized, "%s+", " ")
-        return string.Trim(normalized)
-    end
-
-    local function MatchesSearch(clothesId)
-        if searchValue == "" then return true end
-        local normalizedId = NormalizeSearchValue(clothesId)
-        local normalizedPretty = NormalizeSearchValue(string.NiceName(clothesId or ""))
-        return string.find(normalizedId, searchValue, 1, true) ~= nil
-            or string.find(normalizedPretty, searchValue, 1, true) ~= nil
-    end
 
     local clothesEntries = {}
     local selectedIcon
@@ -464,38 +579,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         end
 
         function colorPickerBtn:DoClick()
-            local colorMenu = vgui.Create("DFrame")
-            colorMenu:SetTitle("Select Color")
-            colorMenu:SetSize(ScreenScale(120), ScreenScale(140))
-            local x, y = self:LocalToScreen(0, 0)
-            x = x + self:GetWide() + ScreenScale(5)
-            y = y
-            if x + colorMenu:GetWide() > ScrW() then
-                x = x - colorMenu:GetWide() - self:GetWide() - ScreenScale(10)
-            end
-            if y + colorMenu:GetTall() > ScrH() then
-                y = ScrH() - colorMenu:GetTall() - ScreenScale(5)
-            end
-            colorMenu:SetPos(x, y)
-            colorMenu:MakePopup()
-            colorMenu:SetDraggable(false)
-
-            function colorMenu:OnFocusChanged(gained)
-                if not gained then self:Close() end
-            end
-
-            function colorMenu:Paint(w, h)
-                draw.RoundedBox(8, 0, 0, w, h, Color(15, 15, 20, 250))
-                surface.SetDrawColor(colors.scrollbarBorder)
-                surface.DrawOutlinedRect(0, 0, w, h, 2)
-            end
-
-            local colorMixer = vgui.Create("DColorMixer", colorMenu)
-            colorMixer:Dock(FILL)
-            colorMixer:DockMargin(ScreenScale(4), ScreenScale(4), ScreenScale(4), ScreenScale(4))
-            colorMixer:SetColor(currentColor)
-
-            function colorMixer:ValueChanged(clr)
+            OpenAppearanceColorMenu(self, currentColor, function(clr)
                 currentColor = clr
                 if onSelect and onSelect.color then
                     onSelect.color(clr)
@@ -503,20 +587,11 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
                 if IsValid(colorPickerBtn) then
                     colorPickerBtn.currentColor = clr
                 end
-            end
+            end)
 
-            local closeBtn = vgui.Create("DButton", colorMenu)
-            closeBtn:Dock(BOTTOM)
-            closeBtn:SetTall(ScreenScale(16))
-            closeBtn:DockMargin(ScreenScale(4), 0, ScreenScale(4), ScreenScale(4))
-            closeBtn:SetText("Close")
-            closeBtn:SetFont("ZCity_Tiny")
-            function closeBtn:Paint(w, h)
-                draw.RoundedBox(4, 0, 0, w, h, colors.secondary)
-                surface.SetDrawColor(colors.scrollbarBorder)
-                surface.DrawOutlinedRect(0, 0, w, h, 1)
+            if IsValid(menu) then
+                menu:Close()
             end
-            function closeBtn:DoClick() colorMenu:Close() end
         end
 
         function paletteHeaderBtn:DoClick()
@@ -599,6 +674,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         function previewModel:LayoutEntity(ent)
             if not IsValid(ent) then return end
             FreezePreviewEntity(ent)
+            ForcePreviewPlayerColor(ent)
 
             if ent.__AppearanceFrozenClothes and ent.__AppearanceFrozenClothes == clothesId then return end
 
@@ -630,6 +706,8 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
                     end
                 end
             end
+
+            ApplyPreviewBodygroups(ent, sex, appearanceTable)
             ent:SetColor(Color(255,255,255))
             ent.__AppearanceFrozenClothes = clothesId
         end
