@@ -1637,6 +1637,7 @@ local function CreateModelIcon(parent, modelName, modelData, appearanceTable, on
     function mdl:LayoutEntity(ent)
         if not IsValid(ent) then return end
         FreezePreviewEntity(ent)
+        ForcePreviewPlayerColor(ent)
 
         ApplyPreviewAppearance(ent, isFemale and 2 or 1, modelData, previewAppearance)
     end
