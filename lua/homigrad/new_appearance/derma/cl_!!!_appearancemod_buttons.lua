@@ -1865,8 +1865,38 @@ end)
 local oldCreateApperanceMenu = hg.CreateApperanceMenu
 
 -- Функция модификации панели: ищем кнопки по тексту и подменяем DoClick
+local function EnsureAppearanceTableDefaults(panel)
+    if not IsValid(panel) then return nil end
+
+    panel.AppearanceTable = panel.AppearanceTable or {}
+    panel.AppearanceTable.AClothes = panel.AppearanceTable.AClothes or {}
+    panel.AppearanceTable.ABodygroups = panel.AppearanceTable.ABodygroups or {}
+
+    return panel.AppearanceTable
+end
+
+local function OpenCompatibilityMenuForPart(panel, btn, part, current, onSelect, onClose)
+    if not IsValid(panel) then return nil end
+
+    local appearanceTable = EnsureAppearanceTableDefaults(panel)
+    if not appearanceTable then return nil end
+
+    if part == "facemap" then
+        return hg.Appearance.OpenFacemapMenu and hg.Appearance.OpenFacemapMenu(btn, current, onSelect, appearanceTable, onClose) or nil
+    elseif part == "gloves" then
+        return CreateGlovesIconMenu(btn, current, onSelect, appearanceTable, onClose)
+    else
+        return hg.Appearance.OpenClothesMenu and hg.Appearance.OpenClothesMenu(btn, part, current, onSelect, appearanceTable, onClose) or nil
+    end
+end
+
 local function ModifyAppearanceMenu(panel)
-    if not IsValid(panel) then return end
+    if not IsValid(panel) then return false end
+
+    EnsureAppearanceTableDefaults(panel)
+
+    local wrappedButtons = 0
+    local expectedButtons = 0
 
     -- Таблица соответствия: текст кнопки -> часть тела
     local buttonMap = {
@@ -1973,77 +2003,81 @@ local function ModifyAppearanceMenu(panel)
             if child:GetName() == "DButton" or child:GetClassName() == "DButton" then
                 local text = child:GetText() or ""
                 if buttonMap[text] then
-                    -- Запоминаем оригинальный DoClick (на всякий случай)
+                    expectedButtons = expectedButtons + 1
+
                     local oldDoClick = child.DoClick
                     local part = buttonMap[text]
 
-                    -- Подменяем метод
-                    child.DoClick = function(btn)
-                        -- Устанавливаем позицию камеры (как в оригинале)
-                        if part == "main" then
-                            panel.modelPosID = "Torso"
-                        elseif part == "pants" then
-                            panel.modelPosID = "Legs"
-                        elseif part == "boots" then
-                            panel.modelPosID = "Boots"
-                        elseif part == "gloves" then
-                            panel.modelPosID = "Hands"
-                        elseif part == "facemap" then
-                            panel.modelPosID = "Face"
-                        end
+                    if child.__AppearanceModWrapped then
+                        wrappedButtons = wrappedButtons + 1
+                    else
+                        child.__AppearanceModWrapped = true
+                        child.__AppearanceOriginalDoClick = oldDoClick
 
-                        -- Определяем текущее значение для этой части
-                        local current
-                        if part == "main" then
-                            current = panel.AppearanceTable.AClothes.main
-                        elseif part == "pants" then
-                            current = panel.AppearanceTable.AClothes.pants
-                        elseif part == "boots" then
-                            current = panel.AppearanceTable.AClothes.boots
-                        elseif part == "gloves" then
-                            -- для gloves нужно брать из ABodygroups
-                            current = panel.AppearanceTable.ABodygroups and panel.AppearanceTable.ABodygroups["HANDS"] or "Default"
-                        elseif part == "facemap" then
-                            current = panel.AppearanceTable.AFacemap or "Default"
-                        end
+                        child.DoClick = function(btn)
+                            local editTable = EnsureAppearanceTableDefaults(panel)
+                            if not editTable then
+                                if child.__AppearanceOriginalDoClick then
+                                    return child.__AppearanceOriginalDoClick(btn)
+                                end
+                                return
+                            end
 
-                        -- Колбэк обновления таблицы
-                        local function onSelect(id)
                             if part == "main" then
-                                panel.AppearanceTable.AClothes.main = id
+                                panel.modelPosID = "Torso"
                             elseif part == "pants" then
-                                panel.AppearanceTable.AClothes.pants = id
+                                panel.modelPosID = "Legs"
                             elseif part == "boots" then
-                                panel.AppearanceTable.AClothes.boots = id
+                                panel.modelPosID = "Boots"
                             elseif part == "gloves" then
-                                if not panel.AppearanceTable.ABodygroups then panel.AppearanceTable.ABodygroups = {} end
-                                panel.AppearanceTable.ABodygroups["HANDS"] = id
+                                panel.modelPosID = "Hands"
                             elseif part == "facemap" then
-                                panel.AppearanceTable.AFacemap = id
+                                panel.modelPosID = "Face"
+                            end
+
+                            local current
+                            if part == "main" then
+                                current = editTable.AClothes.main
+                            elseif part == "pants" then
+                                current = editTable.AClothes.pants
+                            elseif part == "boots" then
+                                current = editTable.AClothes.boots
+                            elseif part == "gloves" then
+                                current = editTable.ABodygroups["HANDS"] or "Default"
+                            elseif part == "facemap" then
+                                current = editTable.AFacemap or "Default"
+                            end
+
+                            local function onSelect(id)
+                                if part == "main" then
+                                    editTable.AClothes.main = id
+                                elseif part == "pants" then
+                                    editTable.AClothes.pants = id
+                                elseif part == "boots" then
+                                    editTable.AClothes.boots = id
+                                elseif part == "gloves" then
+                                    editTable.ABodygroups["HANDS"] = id
+                                elseif part == "facemap" then
+                                    editTable.AFacemap = id
+                                end
+                            end
+
+                            local function resetCamera()
+                                panel.modelPosID = "All"
+                            end
+
+                            local openedMenu = OpenCompatibilityMenuForPart(panel, btn, part, current, onSelect, resetCamera)
+                            if IsValid(openedMenu) then
+                                return openedMenu
+                            end
+
+                            resetCamera()
+                            if child.__AppearanceOriginalDoClick then
+                                return child.__AppearanceOriginalDoClick(btn)
                             end
                         end
 
-                        -- Открываем соответствующее меню
-                        if part == "facemap" then
-                            hg.Appearance.OpenFacemapMenu(btn, current, onSelect, panel.AppearanceTable, function()
-                                panel.modelPosID = "All"
-                            end)
-                        elseif part == "gloves" then
-                            CreateGlovesIconMenu(btn, current, onSelect, panel.AppearanceTable, function()
-                                panel.modelPosID = "All"
-                            end)
-                        else
-                            hg.Appearance.OpenClothesMenu(btn, part, current, onSelect, panel.AppearanceTable, function()
-                                panel.modelPosID = "All"
-                            end)
-                        end
-
-
-                        -- Открываем наше меню
-                        --hg.Appearance.OpenClothesMenu(btn, part, current, onSelect, panel.AppearanceTable, function()
-                            -- При закрытии меню возвращаем камеру в положение "All"
-                            --panel.modelPosID = "All"
-                        --end)
+                        wrappedButtons = wrappedButtons + 1
                     end
                 end
             end
@@ -2055,17 +2089,38 @@ local function ModifyAppearanceMenu(panel)
     end
 
     FindButtons(panel)
+
+    panel.__AppearanceButtonsHooked = expectedButtons > 0 and wrappedButtons >= expectedButtons
+
+    return panel.__AppearanceButtonsHooked
 end
+
+local function TryModifyCreatedAppearanceMenu()
+    if not IsValid(zpan) then return false end
+    return ModifyAppearanceMenu(zpan)
+end
+
+hook.Add("Think", "ZCityAppearanceMod_AttachButtons", function()
+    if IsValid(zpan) and zpan.__AppearanceButtonsHooked then return end
+    TryModifyCreatedAppearanceMenu()
+end)
 
 -- Переопределяем функцию создания меню
 function hg.CreateApperanceMenu(ParentPanel)
-    -- Вызываем оригинал
     oldCreateApperanceMenu(ParentPanel)
 
-    -- Ждём, пока панель появится и отрисуется
-    timer.Simple(0.1, function()
-        if IsValid(zpan) then
-            ModifyAppearanceMenu(zpan)
+    local retryId = "ZCityAppearanceMod_WaitForPanel_" .. tostring(SysTime())
+    local attempts = 0
+
+    timer.Create(retryId, 0.1, 50, function()
+        if TryModifyCreatedAppearanceMenu() then
+            timer.Remove(retryId)
+            return
+        end
+
+        attempts = attempts + 1
+        if attempts >= 50 or (IsValid(zpan) and zpan.__AppearanceButtonsHooked) then
+            timer.Remove(retryId)
         end
     end)
 end
