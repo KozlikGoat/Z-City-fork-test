@@ -1523,6 +1523,262 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
     return menu
 end
 
+local BODYGROUP_PART_CONFIG = {
+    main = {
+        menuTitle = "Select Jacket Bodygroup",
+        bodygroupKey = "sheet",
+        cameraPosId = "Torso",
+        camera = {
+            camPos = Vector(70, 0, 40),
+            lookAt = Vector(0, 0, 45),
+            fov = 25
+        },
+        scrollKey = "bodygroup_sheet"
+    },
+    pants = {
+        menuTitle = "Select Pants Bodygroup",
+        bodygroupKey = "pants",
+        cameraPosId = "Legs",
+        camera = {
+            camPos = Vector(70, 0, 20),
+            lookAt = Vector(0, 0, 15),
+            fov = 30
+        },
+        scrollKey = "bodygroup_pants"
+    },
+    boots = {
+        menuTitle = "Select Boots Bodygroup",
+        bodygroupKey = "shoes",
+        cameraPosId = "Boots",
+        camera = {
+            camPos = Vector(40, -50, 30),
+            lookAt = Vector(7, 0, 0),
+            fov = 14
+        },
+        scrollKey = "bodygroup_shoes"
+    }
+}
+
+local function ResolveBodygroupCatalogByKey(bodygroupKey, sexIndex)
+    if not bodygroupKey then return nil, nil end
+
+    local bodygroups = hg.Appearance.Bodygroups or {}
+    local possibleKeys = {
+        bodygroupKey,
+        string.upper(bodygroupKey),
+        string.lower(bodygroupKey)
+    }
+
+    for _, key in ipairs(possibleKeys) do
+        local bySex = bodygroups[key] and bodygroups[key][sexIndex]
+        if bySex and not table.IsEmpty(bySex) then
+            return bySex, key
+        end
+    end
+end
+
+local function CreateBodygroupIconMenu(parent, partName, currentSelection, onSelectCallback, appearanceTable, onClose)
+    local config = BODYGROUP_PART_CONFIG[partName]
+    if not config then return end
+
+    local editTable, _, currentModelPath, sexIndex, modelData = ResolveCurrentModelData(appearanceTable)
+    if not modelData then return end
+
+    local bodygroupsBySex, resolvedBodygroupKey = ResolveBodygroupCatalogByKey(config.bodygroupKey, sexIndex)
+    if not bodygroupsBySex then
+        notification.AddLegacy("No bodygroups available for " .. tostring(config.bodygroupKey), NOTIFY_ERROR, 3)
+        return
+    end
+
+    local menu = vgui.Create("DFrame")
+    menu:SetTitle(config.menuTitle .. " - " .. string.NiceName(currentSelection or "None"))
+    menu:SetSize(ScreenScale(210), ScreenScale(165))
+
+    local x, y
+    if parent and IsValid(parent) then
+        local parentX, parentY = parent:LocalToScreen(0, 0)
+        local parentW = parent:GetWide()
+        x = parentX + parentW + ScreenScale(5)
+        y = parentY
+        if x + menu:GetWide() > ScrW() then
+            x = parentX - menu:GetWide() - ScreenScale(5)
+        end
+        if y + menu:GetTall() > ScrH() then
+            y = ScrH() - menu:GetTall() - ScreenScale(5)
+        end
+    else
+        x, y = input.GetCursorPos()
+        if y + menu:GetTall() > ScrH() then
+            y = ScrH() - menu:GetTall() - ScreenScale(5)
+        end
+    end
+
+    menu:SetPos(x, y)
+    menu:MakePopup()
+    menu:SetDraggable(false)
+    menu:ShowCloseButton(true)
+
+    local function IsPanelInsideMenu(panelToCheck)
+        while IsValid(panelToCheck) do
+            if panelToCheck == menu then return true end
+            panelToCheck = panelToCheck:GetParent()
+        end
+        return false
+    end
+
+    function menu:OnFocusChanged(gained)
+        if gained then return end
+        timer.Simple(0, function()
+            if not IsValid(self) then return end
+
+            local focusedPanel = vgui.GetKeyboardFocus()
+            local hoveredPanel = vgui.GetHoveredPanel()
+            if IsPanelInsideMenu(focusedPanel) or IsPanelInsideMenu(hoveredPanel) then return end
+
+            self:Close()
+        end)
+    end
+
+    function menu:Paint(w, h)
+        draw.RoundedBox(8, 0, 0, w, h, clr_menu)
+        surface.SetDrawColor(colors.scrollbarBorder)
+        surface.DrawOutlinedRect(0, 0, w, h, 2)
+    end
+
+    local scroll = CreateStyledScrollPanel(menu)
+    scroll:Dock(FILL)
+    scroll:DockMargin(ScreenScale(2), ScreenScale(2), ScreenScale(2), ScreenScale(2))
+
+    if scrollPositions[config.scrollKey] then
+        RestoreScrollPositionDelayed(scroll, scrollPositions[config.scrollKey])
+    end
+
+    local grid = vgui.Create("DGrid", scroll)
+    grid:Dock(TOP)
+    grid:SetCols(GLOVES_MENU_PREVIEW_COLS)
+    grid:SetColWide(ScreenScale(68))
+    grid:SetRowHeight(ScreenScale(66))
+
+    local lply = LocalPlayer()
+    local selectedIcon
+
+    for variantName, variantData in SortedPairs(bodygroupsBySex) do
+        local hasAccess = hg.Appearance.GetAccessToAll and hg.Appearance.GetAccessToAll(lply)
+        local hasItem = lply and lply.PS_HasItem and variantData and variantData.ID and lply:PS_HasItem(variantData.ID)
+        if variantData and variantData[2] and not hasAccess and not hasItem then continue end
+
+        local icon = vgui.Create("DButton")
+        icon:SetText("")
+        icon:SetSize(ScreenScale(66), ScreenScale(62))
+
+        local mdl = vgui.Create("DModelPanel", icon)
+        mdl:Dock(FILL)
+        mdl:DockMargin(2, 2, 2, 10)
+        mdl:SetModel(currentModelPath)
+        EnsurePreviewPanelBounds(mdl)
+        mdl:SetAnimated(false)
+        function mdl:RunAnimation() end
+        mdl:SetCamPos(config.camera.camPos)
+        mdl:SetLookAt(config.camera.lookAt)
+        mdl:SetFOV(config.camera.fov)
+
+        function mdl:LayoutEntity(ent)
+            if not IsValid(ent) then return end
+            FreezePreviewEntity(ent)
+            ForcePreviewPlayerColor(ent)
+            ApplyPreviewAppearance(ent, sexIndex, modelData, editTable)
+            ApplyPreviewBodygroups(ent, sexIndex, editTable)
+
+            local pointItem = variantData and variantData.ID and hg.PointShop and hg.PointShop.Items and hg.PointShop.Items[variantData.ID]
+            local pointData = pointItem and pointItem.DATA
+            if pointData then
+                for subMatIndex, subMatPath in pairs(pointData) do
+                    local matIndex = tonumber(subMatIndex)
+                    if matIndex ~= nil and isstring(subMatPath) and subMatPath ~= "" then
+                        ent:SetSubMaterial(matIndex, subMatPath)
+                    end
+                end
+            end
+
+            local bgValue = variantData and variantData[1]
+            if not bgValue then return end
+
+            for _, bg in ipairs(ent:GetBodyGroups() or {}) do
+                if string.lower(bg.name or "") == string.lower(config.bodygroupKey) then
+                    local submodels = bg.submodels or {}
+                    for subIndex = 0, #submodels do
+                        local subModel = submodels[subIndex]
+                        if subModel == bgValue then
+                            ent:SetBodygroup(bg.id, subIndex)
+                            break
+                        end
+                    end
+                    break
+                end
+            end
+        end
+
+        function icon:DoClick()
+            if onSelectCallback then
+                onSelectCallback(variantName, resolvedBodygroupKey)
+            end
+            menu:Close()
+            surface.PlaySound("player/weapon_draw_0" .. math.random(2, 5) .. ".wav")
+        end
+
+        function mdl:DoClick()
+            icon:DoClick()
+        end
+
+        local lbl = vgui.Create("DLabel", icon)
+        lbl:SetPos(0, ScreenScale(50))
+        lbl:SetSize(ScreenScale(66), ScreenScale(10))
+        lbl:SetFont("ZCity_Tiny")
+        lbl:SetText(string.NiceName(variantName))
+        lbl:SetTextColor(colors.mainText)
+        lbl:SetContentAlignment(8)
+        lbl:SetMouseInputEnabled(false)
+
+        function icon:Think()
+            self.bIsHovered = vgui.GetHoveredPanel() == self or vgui.GetHoveredPanel() == mdl
+        end
+
+        function icon:Paint(w, h)
+            local selected = (variantName == currentSelection)
+            if selected then selectedIcon = self end
+            PaintSelectionIcon(self, w, h, selected, self.bIsHovered)
+        end
+
+        grid:AddItem(icon)
+    end
+
+    local vbar = scroll:GetVBar()
+    function vbar:PaintOver(w, h)
+        if not IsValid(selectedIcon) then return end
+
+        local canvas = scroll:GetCanvas()
+        if not IsValid(canvas) then return end
+
+        local _, selectedY = selectedIcon:LocalToScreen(0, selectedIcon:GetTall() * 0.5)
+        local _, canvasY = canvas:LocalToScreen(0, 0)
+        local canvasTall = math.max(canvas:GetTall(), 1)
+        local relativePos = math.Clamp((selectedY - canvasY) / canvasTall, 0, 1)
+        local markerY = math.floor(relativePos * h)
+
+        draw.RoundedBox(2, 0, math.Clamp(markerY - 2, 0, math.max(h - 4, 0)), w, 4, Color(50, 220, 80, 240))
+    end
+
+    function menu:OnClose()
+        if IsValid(scroll) then
+            local vbarLocal = scroll:GetVBar()
+            scrollPositions[config.scrollKey] = vbarLocal and vbarLocal:GetScroll() or 0
+        end
+        if onClose then onClose() end
+    end
+
+    return menu
+end
+
 
 local function SyncModelSelectorCombo(panel, modelName)
     if not IsValid(panel) then return end
@@ -1885,6 +2141,12 @@ local function OpenCompatibilityMenuForPart(panel, btn, part, current, onSelect,
         return hg.Appearance.OpenFacemapMenu and hg.Appearance.OpenFacemapMenu(btn, current, onSelect, appearanceTable, onClose) or nil
     elseif part == "gloves" then
         return CreateGlovesIconMenu(btn, current, onSelect, appearanceTable, onClose)
+    elseif part == "bodygroup_main" then
+        return CreateBodygroupIconMenu(btn, "main", current, onSelect, appearanceTable, onClose)
+    elseif part == "bodygroup_pants" then
+        return CreateBodygroupIconMenu(btn, "pants", current, onSelect, appearanceTable, onClose)
+    elseif part == "bodygroup_boots" then
+        return CreateBodygroupIconMenu(btn, "boots", current, onSelect, appearanceTable, onClose)
     else
         return hg.Appearance.OpenClothesMenu and hg.Appearance.OpenClothesMenu(btn, part, current, onSelect, appearanceTable, onClose) or nil
     end
@@ -1943,6 +2205,26 @@ local function ModifyAppearanceMenu(panel)
         panel.AllFacemapsBtn = allFacemapsBtn
     end
 
+    if not IsValid(panel.BodygroupsBtn) then
+        local bodygroupsBtn = vgui.Create("DButton", panel)
+        bodygroupsBtn:SetText("BODYGROUPS")
+        bodygroupsBtn:SetSize(math.floor(ScreenScale(70)), math.floor(ScreenScale(11)))
+        ApplyBaseAppearanceButtonStyle(bodygroupsBtn)
+        function bodygroupsBtn:Think()
+            if not IsValid(panel) then return end
+            local spacing = ScreenScale(4)
+            local belowButton = panel.AllFacemapsBtn
+            if not IsValid(belowButton) then return end
+            self:SetPos(belowButton:GetX(), belowButton:GetY() - self:GetTall() - spacing)
+        end
+        function bodygroupsBtn:DoClick()
+            if hg.Appearance.OpenBodygroupsShowcaseMenu then
+                hg.Appearance.OpenBodygroupsShowcaseMenu(panel.AppearanceTable)
+            end
+        end
+        panel.BodygroupsBtn = bodygroupsBtn
+    end
+
     ------------------------------------------------------
     ------------------------------------------------------
 
@@ -1998,6 +2280,83 @@ local function ModifyAppearanceMenu(panel)
     end
 
     -- Рекурсивно ищем все кнопки внутри панели
+    local function EnsurePartBodygroupButton(baseButton, part)
+        if not IsValid(baseButton) then return end
+        if not BODYGROUP_PART_CONFIG[part] then return end
+
+        local anchorParent = baseButton:GetParent()
+        if not IsValid(anchorParent) then return end
+
+        baseButton.__AppearanceBodygroupButton = baseButton.__AppearanceBodygroupButton or vgui.Create("DButton", anchorParent)
+        local sideButton = baseButton.__AppearanceBodygroupButton
+        if not IsValid(sideButton) then return end
+
+        sideButton:SetText("")
+        sideButton:SetFont("ZCity_Tiny")
+        sideButton:SetTall(baseButton:GetTall())
+        sideButton:SetWide(baseButton:GetTall())
+
+        sideButton.IconMaterial = sideButton.IconMaterial or Material("icon64/playermodel.png", "smooth")
+        sideButton.__AppearanceBodygroupPart = part
+
+        function sideButton:Paint(w, h)
+            draw.RoundedBox(4, 0, 0, w, h, colors.secondary)
+            surface.SetDrawColor(colors.scrollbarBorder)
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
+            if self.IconMaterial then
+                local size = math.max(8, math.floor(h * 0.62))
+                local pad = math.floor((h - size) * 0.5)
+                surface.SetMaterial(self.IconMaterial)
+                surface.SetDrawColor(235, 235, 245, 255)
+                surface.DrawTexturedRect(pad, pad, size, size)
+            end
+        end
+
+        function sideButton:Think()
+            if not IsValid(baseButton) then
+                self:Remove()
+                return
+            end
+
+            local spacing = ScreenScale(2)
+            self:SetTall(baseButton:GetTall())
+            self:SetWide(baseButton:GetTall())
+            local y = baseButton:GetY() + math.floor((baseButton:GetTall() - self:GetTall()) * 0.5)
+            self:SetPos(baseButton:GetX() + baseButton:GetWide() + spacing, y)
+            self:SetVisible(baseButton:IsVisible())
+        end
+
+        function sideButton:DoClick()
+            local editTable = EnsureAppearanceTableDefaults(panel)
+            if not editTable then return end
+
+            local config = BODYGROUP_PART_CONFIG[self.__AppearanceBodygroupPart]
+            if not config then return end
+
+            panel.modelPosID = config.cameraPosId
+            editTable.ABodygroups = editTable.ABodygroups or {}
+            local current = editTable.ABodygroups[config.bodygroupKey]
+
+            local function onSelect(id, resolvedBodygroupKey)
+                local keyToUse = resolvedBodygroupKey or config.bodygroupKey
+                editTable.ABodygroups[keyToUse] = id
+                if keyToUse ~= config.bodygroupKey then
+                    editTable.ABodygroups[config.bodygroupKey] = id
+                end
+            end
+
+            local function resetCamera()
+                panel.modelPosID = "All"
+            end
+
+            local compatPart = "bodygroup_" .. tostring(self.__AppearanceBodygroupPart)
+            local menu = OpenCompatibilityMenuForPart(panel, self, compatPart, current, onSelect, resetCamera)
+            if not IsValid(menu) then
+                resetCamera()
+            end
+        end
+    end
+
     local function FindButtons(parent)
         for _, child in ipairs(parent:GetChildren()) do
             if child:GetName() == "DButton" or child:GetClassName() == "DButton" then
@@ -2078,6 +2437,10 @@ local function ModifyAppearanceMenu(panel)
                         end
 
                         wrappedButtons = wrappedButtons + 1
+                    end
+
+                    if part == "main" or part == "pants" or part == "boots" then
+                        EnsurePartBodygroupButton(child, part)
                     end
                 end
             end
