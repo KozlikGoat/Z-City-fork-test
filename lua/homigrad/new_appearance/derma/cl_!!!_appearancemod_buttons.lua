@@ -2141,8 +2141,12 @@ local function OpenCompatibilityMenuForPart(panel, btn, part, current, onSelect,
         return hg.Appearance.OpenFacemapMenu and hg.Appearance.OpenFacemapMenu(btn, current, onSelect, appearanceTable, onClose) or nil
     elseif part == "gloves" then
         return CreateGlovesIconMenu(btn, current, onSelect, appearanceTable, onClose)
-    elseif BODYGROUP_PART_CONFIG[part] then
-        return CreateBodygroupIconMenu(btn, part, current, onSelect, appearanceTable, onClose)
+    elseif part == "bodygroup_main" then
+        return CreateBodygroupIconMenu(btn, "main", current, onSelect, appearanceTable, onClose)
+    elseif part == "bodygroup_pants" then
+        return CreateBodygroupIconMenu(btn, "pants", current, onSelect, appearanceTable, onClose)
+    elseif part == "bodygroup_boots" then
+        return CreateBodygroupIconMenu(btn, "boots", current, onSelect, appearanceTable, onClose)
     else
         return hg.Appearance.OpenClothesMenu and hg.Appearance.OpenClothesMenu(btn, part, current, onSelect, appearanceTable, onClose) or nil
     end
@@ -2280,7 +2284,10 @@ local function ModifyAppearanceMenu(panel)
         if not IsValid(baseButton) then return end
         if not BODYGROUP_PART_CONFIG[part] then return end
 
-        baseButton.__AppearanceBodygroupButton = baseButton.__AppearanceBodygroupButton or vgui.Create("DButton", panel)
+        local anchorParent = baseButton:GetParent()
+        if not IsValid(anchorParent) then return end
+
+        baseButton.__AppearanceBodygroupButton = baseButton.__AppearanceBodygroupButton or vgui.Create("DButton", anchorParent)
         local sideButton = baseButton.__AppearanceBodygroupButton
         if not IsValid(sideButton) then return end
 
@@ -2314,7 +2321,8 @@ local function ModifyAppearanceMenu(panel)
             local spacing = ScreenScale(2)
             self:SetTall(baseButton:GetTall())
             self:SetWide(baseButton:GetTall())
-            self:SetPos(baseButton:GetX() + baseButton:GetWide() + spacing, baseButton:GetY())
+            local y = baseButton:GetY() + math.floor((baseButton:GetTall() - self:GetTall()) * 0.5)
+            self:SetPos(baseButton:GetX() + baseButton:GetWide() + spacing, y)
             self:SetVisible(baseButton:IsVisible())
         end
 
@@ -2341,7 +2349,8 @@ local function ModifyAppearanceMenu(panel)
                 panel.modelPosID = "All"
             end
 
-            local menu = OpenCompatibilityMenuForPart(panel, self, self.__AppearanceBodygroupPart, current, onSelect, resetCamera)
+            local compatPart = "bodygroup_" .. tostring(self.__AppearanceBodygroupPart)
+            local menu = OpenCompatibilityMenuForPart(panel, self, compatPart, current, onSelect, resetCamera)
             if not IsValid(menu) then
                 resetCamera()
             end

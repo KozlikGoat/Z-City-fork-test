@@ -778,43 +778,18 @@ function hg.Appearance.OpenBodygroupsShowcaseMenu(appearanceTable)
     local controlsScroll = vgui.Create("DScrollPanel", frame)
     controlsScroll:Dock(FILL)
     controlsScroll:DockMargin(10, 10, 10, 10)
+    local controlsList = vgui.Create("DPanelList", controlsScroll)
+    controlsList:Dock(TOP)
+    controlsList:SetSpacing(6)
+    controlsList:EnableVerticalScrollbar(false)
 
-    local sectionsOrder = {"sheet", "pants", "shoes", "hands"}
-    local sectionPanels = {}
-    local sectionLabels = {
-        sheet = "Jacket",
-        pants = "Pants",
-        shoes = "Boots",
-        hands = "Gloves",
-        other = "Other"
-    }
-
-    local function GetOrCreateSection(sectionName)
-        sectionName = sectionName or "other"
-        if IsValid(sectionPanels[sectionName]) then
-            return sectionPanels[sectionName]
-        end
-
-        local section = vgui.Create("DCollapsibleCategory", controlsScroll)
-        section:Dock(TOP)
-        section:DockMargin(0, 0, 0, 6)
-        section:SetLabel(sectionLabels[sectionName] or string.NiceName(sectionName))
-        section:SetExpanded(true)
-
-        local list = vgui.Create("DPanelList", section)
-        list:EnableVerticalScrollbar(false)
-        list:SetSpacing(4)
-        list:Dock(FILL)
-        section:SetContents(list)
-
-        controlsScroll:AddItem(section)
-        sectionPanels[sectionName] = list
-        return list
-    end
-
-    for _, orderedName in ipairs(sectionsOrder) do
-        GetOrCreateSection(orderedName)
-    end
+    local header = vgui.Create("DLabel")
+    header:SetFont("ZCity_Small")
+    header:SetText("BODYGROUPS")
+    header:SetTextColor(color_white)
+    header:Dock(TOP)
+    header:SetTall(24)
+    controlsList:AddItem(header)
 
     local previewEntity
     timer.Simple(0, function()
@@ -826,20 +801,19 @@ function hg.Appearance.OpenBodygroupsShowcaseMenu(appearanceTable)
     local function AddBodygroupSlider(bgData)
         local bgName = bgData and bgData.name
         if not bgName then return end
-
-        local sectionName = string.lower(bgName)
-        if sectionName ~= "sheet" and sectionName ~= "pants" and sectionName ~= "shoes" and sectionName ~= "hands" then
-            sectionName = "other"
-        end
-
-        local sectionList = GetOrCreateSection(sectionName)
         local slider = vgui.Create("DNumSlider")
         slider:Dock(TOP)
         slider:SetText(string.NiceName(bgName))
         slider:SetMin(0)
         slider:SetMax(math.max((bgData.num or 1) - 1, 0))
         slider:SetDecimals(0)
-        slider:SetDark(true)
+        slider:SetDark(false)
+        if IsValid(slider.Label) then
+            slider.Label:SetTextColor(color_white)
+        end
+        if IsValid(slider.TextArea) then
+            slider.TextArea:SetTextColor(color_white)
+        end
 
         local selectedVariant = editTable.ABodygroups[bgName] or editTable.ABodygroups[string.lower(bgName)] or editTable.ABodygroups[string.upper(bgName)]
         local bodygroupOptions = ResolveBodygroupDefinition(bgName, sexIndex)
@@ -885,7 +859,7 @@ function hg.Appearance.OpenBodygroupsShowcaseMenu(appearanceTable)
             end
         end
 
-        sectionList:AddItem(slider)
+        controlsList:AddItem(slider)
     end
 
     timer.Simple(0, function()
