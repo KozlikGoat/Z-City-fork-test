@@ -1376,6 +1376,9 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
         draw.RoundedBox(8, 0, 0, w, h, clr_menu)
         surface.SetDrawColor(colors.scrollbarBorder)
         surface.DrawOutlinedRect(0, 0, w, h, 2)
+        draw.RoundedBoxEx(8, 0, 0, w, ScreenScale(10), colors.secondary, true, true, false, false)
+        surface.SetDrawColor(colors.scrollbarBorder)
+        surface.DrawLine(0, ScreenScale(10), w, ScreenScale(10))
     end
 
     local scroll = CreateStyledScrollPanel(menu)
@@ -2321,7 +2324,7 @@ local function ModifyAppearanceMenu(panel)
             local spacing = ScreenScale(2)
             self:SetTall(baseButton:GetTall())
             self:SetWide(baseButton:GetTall())
-            local y = baseButton:GetY() + math.floor((baseButton:GetTall() - self:GetTall()) * 0.5)
+            local y = baseButton:GetY() + baseButton:GetTall() - self:GetTall()
             self:SetPos(baseButton:GetX() + baseButton:GetWide() + spacing, y)
             self:SetVisible(baseButton:IsVisible())
         end
@@ -2372,6 +2375,7 @@ local function ModifyAppearanceMenu(panel)
                     else
                         child.__AppearanceModWrapped = true
                         child.__AppearanceOriginalDoClick = oldDoClick
+                        child.__AppearanceModPart = part
 
                         child.DoClick = function(btn)
                             local editTable = EnsureAppearanceTableDefaults(panel)
@@ -2382,41 +2386,43 @@ local function ModifyAppearanceMenu(panel)
                                 return
                             end
 
-                            if part == "main" then
+                            local buttonPart = btn.__AppearanceModPart or part
+
+                            if buttonPart == "main" then
                                 panel.modelPosID = "Torso"
-                            elseif part == "pants" then
+                            elseif buttonPart == "pants" then
                                 panel.modelPosID = "Legs"
-                            elseif part == "boots" then
+                            elseif buttonPart == "boots" then
                                 panel.modelPosID = "Boots"
-                            elseif part == "gloves" then
+                            elseif buttonPart == "gloves" then
                                 panel.modelPosID = "Hands"
-                            elseif part == "facemap" then
+                            elseif buttonPart == "facemap" then
                                 panel.modelPosID = "Face"
                             end
 
                             local current
-                            if part == "main" then
+                            if buttonPart == "main" then
                                 current = editTable.AClothes.main
-                            elseif part == "pants" then
+                            elseif buttonPart == "pants" then
                                 current = editTable.AClothes.pants
-                            elseif part == "boots" then
+                            elseif buttonPart == "boots" then
                                 current = editTable.AClothes.boots
-                            elseif part == "gloves" then
+                            elseif buttonPart == "gloves" then
                                 current = editTable.ABodygroups["HANDS"] or "Default"
-                            elseif part == "facemap" then
+                            elseif buttonPart == "facemap" then
                                 current = editTable.AFacemap or "Default"
                             end
 
                             local function onSelect(id)
-                                if part == "main" then
+                                if buttonPart == "main" then
                                     editTable.AClothes.main = id
-                                elseif part == "pants" then
+                                elseif buttonPart == "pants" then
                                     editTable.AClothes.pants = id
-                                elseif part == "boots" then
+                                elseif buttonPart == "boots" then
                                     editTable.AClothes.boots = id
-                                elseif part == "gloves" then
+                                elseif buttonPart == "gloves" then
                                     editTable.ABodygroups["HANDS"] = id
-                                elseif part == "facemap" then
+                                elseif buttonPart == "facemap" then
                                     editTable.AFacemap = id
                                 end
                             end
@@ -2425,7 +2431,7 @@ local function ModifyAppearanceMenu(panel)
                                 panel.modelPosID = "All"
                             end
 
-                            local openedMenu = OpenCompatibilityMenuForPart(panel, btn, part, current, onSelect, resetCamera)
+                            local openedMenu = OpenCompatibilityMenuForPart(panel, btn, buttonPart, current, onSelect, resetCamera)
                             if IsValid(openedMenu) then
                                 return openedMenu
                             end

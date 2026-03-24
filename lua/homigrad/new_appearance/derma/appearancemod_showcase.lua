@@ -15,6 +15,34 @@ local FACEMAP_SECTION_HEADER_PAD = math.floor(FACEMAP_ICON_SIZE * (((hg.Appearan
 local scrollPositions = hg.Appearance.MenuScrollPositions or {}
 hg.Appearance.MenuScrollPositions = scrollPositions
 local WHITE_PLAYER_COLOR = Vector(1, 1, 1)
+local uiColors = {
+    panel = Color(15, 15, 20, 250),
+    header = Color(25, 25, 35, 195),
+    border = Color(100, 100, 120, 200),
+    sliderBg = Color(18, 18, 24, 235)
+}
+
+local function CreateStyledScrollPanel(parent)
+    local scroll = vgui.Create("DScrollPanel", parent)
+    local sbar = scroll:GetVBar()
+    sbar:SetWide(ScreenScale(4))
+    sbar:SetHideButtons(true)
+
+    function sbar:Paint(w, h)
+        draw.RoundedBox(4, 0, 0, w, h, Color(20, 20, 30, 200))
+        surface.SetDrawColor(uiColors.border)
+        surface.DrawOutlinedRect(0, 0, w, h, 1)
+    end
+
+    function sbar.btnGrip:Paint(w, h)
+        local col = self:IsHovered() and Color(100, 100, 130, 255) or Color(70, 70, 90, 255)
+        draw.RoundedBox(4, 2, 2, w - 4, h - 4, col)
+        surface.SetDrawColor(uiColors.border)
+        surface.DrawOutlinedRect(2, 2, w - 4, h - 4, 1)
+    end
+
+    return scroll
+end
 
 local function ForcePreviewPlayerColor(ent)
     if not IsValid(ent) then return end
@@ -690,28 +718,35 @@ function hg.Appearance.OpenBodygroupsShowcaseMenu(appearanceTable)
     local sexIndex = modelData.sex and 2 or 1
 
     local frame = vgui.Create("DFrame")
-    frame:SetSize(ScrW(), ScrH())
-    frame:SetTitle("")
+    frame:SetSize(math.min(ScrW() - 40, 1080), math.min(ScrH() - 40, 680))
+    frame:SetTitle("Bodygroups")
     frame:MakePopup()
     frame:Center()
     frame:SetDraggable(false)
     frame:ShowCloseButton(true)
 
     function frame:Paint(w, h)
-        surface.SetDrawColor(0, 0, 0, 255)
-        surface.DrawRect(0, 0, w, h)
+        draw.RoundedBox(8, 0, 0, w, h, uiColors.panel)
+        surface.SetDrawColor(uiColors.border)
+        surface.DrawOutlinedRect(0, 0, w, h, 2)
+        draw.RoundedBoxEx(8, 0, 0, w, ScreenScale(10), uiColors.header, true, true, false, false)
+        surface.SetDrawColor(uiColors.border)
+        surface.DrawLine(0, ScreenScale(10), w, ScreenScale(10))
     end
 
     local viewport = vgui.Create("DPanel", frame)
     viewport:Dock(LEFT)
-    viewport:SetWide(math.floor(ScrW() * 0.52))
+    viewport:DockMargin(8, 28, 6, 8)
+    viewport:SetWide(math.floor(frame:GetWide() * 0.56))
     function viewport:Paint(w, h)
-        draw.RoundedBox(0, 0, 0, w, h, Color(10, 10, 14, 255))
+        draw.RoundedBox(6, 0, 0, w, h, Color(10, 10, 14, 255))
+        surface.SetDrawColor(uiColors.border)
+        surface.DrawOutlinedRect(0, 0, w, h, 1)
     end
 
     local modelPreview = vgui.Create("DModelPanel", viewport)
     modelPreview:Dock(FILL)
-    modelPreview:DockMargin(10, 10, 10, 10)
+    modelPreview:DockMargin(8, 8, 8, 8)
     modelPreview:SetModel(modelData.mdl)
     modelPreview:SetCamPos(Vector(85, -20, 46))
     modelPreview:SetLookAt(Vector(0, 0, 38))
@@ -775,21 +810,20 @@ function hg.Appearance.OpenBodygroupsShowcaseMenu(appearanceTable)
         ApplySelectedBodygroups(ent, sexIndex, editTable)
     end
 
-    local controlsScroll = vgui.Create("DScrollPanel", frame)
+    local controlsScroll = CreateStyledScrollPanel(frame)
     controlsScroll:Dock(FILL)
-    controlsScroll:DockMargin(10, 10, 10, 10)
-    local controlsList = vgui.Create("DPanelList", controlsScroll)
-    controlsList:Dock(TOP)
-    controlsList:SetSpacing(6)
-    controlsList:EnableVerticalScrollbar(false)
+    controlsScroll:DockMargin(6, 28, 8, 8)
 
-    local header = vgui.Create("DLabel")
+    local controlsList = vgui.Create("DListLayout", controlsScroll)
+    controlsList:Dock(TOP)
+
+    local header = vgui.Create("DLabel", controlsList)
     header:SetFont("ZCity_Small")
     header:SetText("BODYGROUPS")
     header:SetTextColor(color_white)
-    header:Dock(TOP)
     header:SetTall(24)
-    controlsList:AddItem(header)
+    header:DockMargin(2, 0, 2, 4)
+    controlsList:Add(header)
 
     local previewEntity
     timer.Simple(0, function()
@@ -803,16 +837,23 @@ function hg.Appearance.OpenBodygroupsShowcaseMenu(appearanceTable)
         if not bgName then return end
         local slider = vgui.Create("DNumSlider")
         slider:Dock(TOP)
+        slider:DockMargin(0, 0, 0, 4)
         slider:SetText(string.NiceName(bgName))
         slider:SetMin(0)
         slider:SetMax(math.max((bgData.num or 1) - 1, 0))
         slider:SetDecimals(0)
-        slider:SetDark(false)
+        slider:SetDark(true)
         if IsValid(slider.Label) then
             slider.Label:SetTextColor(color_white)
         end
         if IsValid(slider.TextArea) then
             slider.TextArea:SetTextColor(color_white)
+        end
+
+        slider.Paint = function(self, w, h)
+            draw.RoundedBox(4, 0, 0, w, h, uiColors.sliderBg)
+            surface.SetDrawColor(uiColors.border)
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
         end
 
         local selectedVariant = editTable.ABodygroups[bgName] or editTable.ABodygroups[string.lower(bgName)] or editTable.ABodygroups[string.upper(bgName)]
@@ -859,7 +900,7 @@ function hg.Appearance.OpenBodygroupsShowcaseMenu(appearanceTable)
             end
         end
 
-        controlsList:AddItem(slider)
+        controlsList:Add(slider)
     end
 
     timer.Simple(0, function()
