@@ -145,6 +145,63 @@ local function EnsureValidClothesForModel(appearanceTable, modelData)
     end
 end
 
+local function ResolveBodygroupDefinition(bodygroupName, sexIndex)
+    if not bodygroupName then return nil, nil end
+
+    local bodygroups = hg.Appearance.Bodygroups or {}
+    local variants = {
+        bodygroupName,
+        string.lower(bodygroupName),
+        string.upper(bodygroupName)
+    }
+
+    for _, key in ipairs(variants) do
+        local bySex = bodygroups[key] and bodygroups[key][sexIndex]
+        if bySex and not table.IsEmpty(bySex) then
+            return bySex, key
+        end
+    end
+end
+
+local function ApplySelectedBodygroups(ent, sexIndex, appearanceTable)
+    if not IsValid(ent) or not appearanceTable then return end
+
+    local selected = appearanceTable.ABodygroups or {}
+    if table.IsEmpty(selected) then return end
+
+    for _, bg in ipairs(ent:GetBodyGroups() or {}) do
+        local selectedName = selected[bg.name] or selected[string.lower(bg.name)] or selected[string.upper(bg.name)]
+        if not selectedName then continue end
+
+        local bySex = ResolveBodygroupDefinition(bg.name, sexIndex)
+        local bgData = bySex and bySex[selectedName]
+        if not bgData then continue end
+
+        local pointItem = bgData.ID and hg.PointShop and hg.PointShop.Items and hg.PointShop.Items[bgData.ID]
+        local pointData = pointItem and pointItem.DATA
+        if pointData then
+            for subMatIndex, subMatPath in pairs(pointData) do
+                local matIndex = tonumber(subMatIndex)
+                if matIndex ~= nil and isstring(subMatPath) and subMatPath ~= "" then
+                    ent:SetSubMaterial(matIndex, subMatPath)
+                end
+            end
+        end
+
+        local bgValue = bgData[1]
+        if not bgValue then continue end
+
+        local submodels = bg.submodels or {}
+        for subIndex = 0, #submodels do
+            local subModel = submodels[subIndex]
+            if subModel == bgValue then
+                ent:SetBodygroup(bg.id, subIndex)
+                break
+            end
+        end
+    end
+end
+
 --[[
 local ICON_W = 150
 local ICON_H = 260
@@ -618,6 +675,228 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
             scrollPositions.allFacemaps = vbar and vbar:GetScroll() or 0
         end
     end
+end
+
+function hg.Appearance.OpenBodygroupsShowcaseMenu(appearanceTable)
+    local editTable = appearanceTable or hg.Appearance.CurrentEditTable
+    if not editTable then return end
+
+    local modelData = ResolveModelDataByName(editTable.AModel)
+    if not modelData then return end
+
+    EnsureValidClothesForModel(editTable, modelData)
+    editTable.ABodygroups = editTable.ABodygroups or {}
+
+    local sexIndex = modelData.sex and 2 or 1
+
+    local frame = vgui.Create("DFrame")
+    frame:SetSize(ScrW(), ScrH())
+    frame:SetTitle("")
+    frame:MakePopup()
+    frame:Center()
+    frame:SetDraggable(false)
+    frame:ShowCloseButton(true)
+
+    function frame:Paint(w, h)
+        surface.SetDrawColor(0, 0, 0, 255)
+        surface.DrawRect(0, 0, w, h)
+    end
+
+    local viewport = vgui.Create("DPanel", frame)
+    viewport:Dock(LEFT)
+    viewport:SetWide(math.floor(ScrW() * 0.52))
+    function viewport:Paint(w, h)
+        draw.RoundedBox(0, 0, 0, w, h, Color(10, 10, 14, 255))
+    end
+
+    local modelPreview = vgui.Create("DModelPanel", viewport)
+    modelPreview:Dock(FILL)
+    modelPreview:DockMargin(10, 10, 10, 10)
+    modelPreview:SetModel(modelData.mdl)
+    modelPreview:SetCamPos(Vector(85, -20, 46))
+    modelPreview:SetLookAt(Vector(0, 0, 38))
+    modelPreview:SetFOV(24)
+    modelPreview:SetAnimated(false)
+    EnsurePreviewPanelBounds(modelPreview)
+    function modelPreview:RunAnimation() end
+
+    function modelPreview:LayoutEntity(ent)
+        if not IsValid(ent) then return end
+        FreezePreviewEntity(ent)
+        ForcePreviewPlayerColor(ent)
+
+        local mats = ent:GetMaterials()
+        local clothes = hg.Appearance.Clothes[sexIndex] or {}
+        local selectedClothes = editTable.AClothes or {}
+        for slot, matName in pairs(modelData.submatSlots or {}) do
+            local texturePath
+            if slot == "hands" then
+                texturePath = (sexIndex == 2) and "models/humans/female/group01/normal" or "models/humans/male/group01/normal"
+            else
+                local selectedClothesId = selectedClothes[slot] or "normal"
+                texturePath = clothes[selectedClothesId] or clothes.normal
+            end
+
+            if texturePath then
+                for i, mat in ipairs(mats) do
+                    if mat == matName then
+                        ent:SetSubMaterial(i - 1, texturePath)
+                        break
+                    end
+                end
+            end
+        end
+
+        local facemap = editTable.AFacemap
+        if facemap and facemap ~= "Default" then
+            local modelKey = string.lower(modelData.mdl or "")
+            local facemapSlots = {}
+            local multi = hg.Appearance.MultiFacemaps and hg.Appearance.MultiFacemaps[modelKey]
+            if multi and multi[facemap] then
+                facemapSlots = multi[facemap]
+            else
+                local slot = hg.Appearance.FacemapsModels and hg.Appearance.FacemapsModels[modelKey]
+                local slotVariants = slot and hg.Appearance.FacemapsSlots and hg.Appearance.FacemapsSlots[slot]
+                if slotVariants and slotVariants[facemap] then
+                    facemapSlots[slot] = slotVariants[facemap]
+                end
+            end
+
+            for slotName, texturePath in pairs(facemapSlots) do
+                for i, matName in ipairs(mats) do
+                    if matName == slotName then
+                        ent:SetSubMaterial(i - 1, texturePath)
+                        break
+                    end
+                end
+            end
+        end
+
+        ApplySelectedBodygroups(ent, sexIndex, editTable)
+    end
+
+    local controlsScroll = vgui.Create("DScrollPanel", frame)
+    controlsScroll:Dock(FILL)
+    controlsScroll:DockMargin(10, 10, 10, 10)
+
+    local sectionsOrder = {"sheet", "pants", "shoes", "hands"}
+    local sectionPanels = {}
+    local sectionLabels = {
+        sheet = "Jacket",
+        pants = "Pants",
+        shoes = "Boots",
+        hands = "Gloves",
+        other = "Other"
+    }
+
+    local function GetOrCreateSection(sectionName)
+        sectionName = sectionName or "other"
+        if IsValid(sectionPanels[sectionName]) then
+            return sectionPanels[sectionName]
+        end
+
+        local section = vgui.Create("DCollapsibleCategory", controlsScroll)
+        section:Dock(TOP)
+        section:DockMargin(0, 0, 0, 6)
+        section:SetLabel(sectionLabels[sectionName] or string.NiceName(sectionName))
+        section:SetExpanded(true)
+
+        local list = vgui.Create("DPanelList", section)
+        list:EnableVerticalScrollbar(false)
+        list:SetSpacing(4)
+        list:Dock(FILL)
+        section:SetContents(list)
+
+        controlsScroll:AddItem(section)
+        sectionPanels[sectionName] = list
+        return list
+    end
+
+    for _, orderedName in ipairs(sectionsOrder) do
+        GetOrCreateSection(orderedName)
+    end
+
+    local previewEntity
+    timer.Simple(0, function()
+        if IsValid(modelPreview) then
+            previewEntity = modelPreview.Entity
+        end
+    end)
+
+    local function AddBodygroupSlider(bgData)
+        local bgName = bgData and bgData.name
+        if not bgName then return end
+
+        local sectionName = string.lower(bgName)
+        if sectionName ~= "sheet" and sectionName ~= "pants" and sectionName ~= "shoes" and sectionName ~= "hands" then
+            sectionName = "other"
+        end
+
+        local sectionList = GetOrCreateSection(sectionName)
+        local slider = vgui.Create("DNumSlider")
+        slider:Dock(TOP)
+        slider:SetText(string.NiceName(bgName))
+        slider:SetMin(0)
+        slider:SetMax(math.max((bgData.num or 1) - 1, 0))
+        slider:SetDecimals(0)
+        slider:SetDark(true)
+
+        local selectedVariant = editTable.ABodygroups[bgName] or editTable.ABodygroups[string.lower(bgName)] or editTable.ABodygroups[string.upper(bgName)]
+        local bodygroupOptions = ResolveBodygroupDefinition(bgName, sexIndex)
+        if bodygroupOptions and selectedVariant and bodygroupOptions[selectedVariant] then
+            local selectedSubmodel = bodygroupOptions[selectedVariant][1]
+            local submodels = bgData.submodels or {}
+            for idx = 0, #submodels do
+                local submodelName = submodels[idx]
+                if submodelName == selectedSubmodel then
+                    slider:SetValue(idx)
+                    break
+                end
+            end
+        else
+            slider:SetValue(0)
+        end
+
+        function slider:OnValueChanged(value)
+            if not IsValid(previewEntity) then
+                previewEntity = IsValid(modelPreview) and modelPreview.Entity or nil
+            end
+
+            local newValue = math.Round(value)
+            if IsValid(previewEntity) then
+                previewEntity:SetBodygroup(bgData.id, newValue)
+            end
+
+            local subModelName = bgData.submodels and bgData.submodels[newValue]
+            if not subModelName then return end
+
+            local optionsByName, resolvedKey = ResolveBodygroupDefinition(bgName, sexIndex)
+            if not optionsByName then return end
+
+            for variantName, variantData in pairs(optionsByName) do
+                if variantData and variantData[1] == subModelName then
+                    local key = resolvedKey or bgName
+                    editTable.ABodygroups[key] = variantName
+                    if key ~= bgName then
+                        editTable.ABodygroups[bgName] = variantName
+                    end
+                    break
+                end
+            end
+        end
+
+        sectionList:AddItem(slider)
+    end
+
+    timer.Simple(0, function()
+        if not IsValid(modelPreview) then return end
+        local ent = modelPreview.Entity
+        if not IsValid(ent) then return end
+
+        for _, bg in ipairs(ent:GetBodyGroups() or {}) do
+            AddBodygroupSlider(bg)
+        end
+    end)
 end
 
 hook.Add("Think","Appearance_ShowcaseHook",function()
