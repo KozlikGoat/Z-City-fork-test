@@ -258,6 +258,32 @@ local function FreezePreviewEntity(ent)
     end
 end
 
+local function GetDefaultHandsMaterialBySex(sexIndex)
+    return (sexIndex == 2) and "models/humans/female/group01/normal" or "models/humans/male/group01/normal"
+end
+
+local function InstallPreviewFreezeGuard(mdlPanel)
+    if not IsValid(mdlPanel) or mdlPanel.__AppearanceFreezeGuardInstalled then return end
+    mdlPanel.__AppearanceFreezeGuardInstalled = true
+
+    function mdlPanel:Think()
+        local ent = self.Entity
+        if not IsValid(ent) then return end
+
+        if self.__AppearanceLastEntity ~= ent then
+            self.__AppearanceLastEntity = ent
+            timer.Simple(0, function()
+                if not IsValid(self) or not IsValid(self.Entity) then return end
+                FreezePreviewEntity(self.Entity)
+                ForcePreviewPlayerColor(self.Entity)
+            end)
+        end
+
+        FreezePreviewEntity(ent)
+        ForcePreviewPlayerColor(ent)
+    end
+end
+
 local function EnsurePreviewPanelBounds(mdlPanel)
     if not IsValid(mdlPanel) then return end
 
@@ -271,6 +297,60 @@ local function EnsurePreviewPanelBounds(mdlPanel)
 
     ApplyBounds()
     timer.Simple(0, ApplyBounds)
+    InstallPreviewFreezeGuard(mdlPanel)
+end
+
+local function ResolvePartCamera(partName, sexIndex)
+    local isFemale = (sexIndex == 2)
+
+    -- CAMERA_JACKET_MALE_START
+    local maleJacketCamPos = Vector(70, 0, 40)
+    local maleJacketLookAt = Vector(0, 0, 45)
+    local maleJacketFov = 25
+    -- CAMERA_JACKET_MALE_END
+
+    -- CAMERA_JACKET_FEMALE_START
+    local femaleJacketCamPos = Vector(68, 0, 39)
+    local femaleJacketLookAt = Vector(0, 0, 44)
+    local femaleJacketFov = 25
+    -- CAMERA_JACKET_FEMALE_END
+
+    -- CAMERA_PANTS_MALE_START
+    local malePantsCamPos = Vector(70, 0, 20)
+    local malePantsLookAt = Vector(0, 0, 15)
+    local malePantsFov = 30
+    -- CAMERA_PANTS_MALE_END
+
+    -- CAMERA_PANTS_FEMALE_START
+    local femalePantsCamPos = Vector(68, 0, 19)
+    local femalePantsLookAt = Vector(0, 0, 15)
+    local femalePantsFov = 30
+    -- CAMERA_PANTS_FEMALE_END
+
+    -- CAMERA_BOOTS_MALE_START
+    local maleBootsCamPos = Vector(40, -50, 30)
+    local maleBootsLookAt = Vector(7, 0, 0)
+    local maleBootsFov = 14
+    -- CAMERA_BOOTS_MALE_END
+
+    -- CAMERA_BOOTS_FEMALE_START
+    local femaleBootsCamPos = Vector(39, -50, 28)
+    local femaleBootsLookAt = Vector(6, 0, 0)
+    local femaleBootsFov = 14
+    -- CAMERA_BOOTS_FEMALE_END
+
+    if partName == "main" or partName == "jacket" then
+        if isFemale then return femaleJacketCamPos, femaleJacketLookAt, femaleJacketFov end
+        return maleJacketCamPos, maleJacketLookAt, maleJacketFov
+    elseif partName == "pants" then
+        if isFemale then return femalePantsCamPos, femalePantsLookAt, femalePantsFov end
+        return malePantsCamPos, malePantsLookAt, malePantsFov
+    elseif partName == "boots" then
+        if isFemale then return femaleBootsCamPos, femaleBootsLookAt, femaleBootsFov end
+        return maleBootsCamPos, maleBootsLookAt, maleBootsFov
+    end
+
+    return Vector(70, 0, 40), Vector(0, 0, 45), 25
 end
 
 local function ResolveCurrentModelData(appearanceTable)
@@ -634,26 +714,7 @@ local function CreateClothesIconMenu(parent, title, clothesTable, sex, currentSe
         function previewModel:RunAnimation() end
 
         -- Настройка камеры в зависимости от части тела
-        local camPos, lookAt, fov
-        if partName == "main" or partName == "jacket" then
-            camPos = Vector(70, 0, 40)
-            lookAt = Vector(0, 0, 45)
-            fov = 25
-        elseif partName == "pants" then
-            camPos = Vector(70, 0, 20)
-            lookAt = Vector(0, 0, 15)
-            fov = 30
-        elseif partName == "boots" then
-            camPos = Vector(40, -50, 30) -- was 5
-            lookAt = Vector(7, 0, 0)
-            fov = 14
-        --[[    
-        elseif partName == "boots" then
-            camPos = Vector(60, 0, 20) -- was 5
-            lookAt = Vector(0, 8, 0)
-            fov = 15
-        ]]
-        end
+        local camPos, lookAt, fov = ResolvePartCamera(partName, sex)
 
         previewModel:SetCamPos(camPos)
         previewModel:SetLookAt(lookAt)
@@ -996,6 +1057,7 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
         function previewModel:LayoutEntity(ent)
             if not IsValid(ent) then return end
             FreezePreviewEntity(ent)
+            ForcePreviewPlayerColor(ent)
 
             if ent.__AppearanceFrozenFacemap and ent.__AppearanceFrozenFacemap == varName then return end
 
@@ -1003,6 +1065,8 @@ local function CreateFacemapIconMenu(parent, title, combinedVariants, sortedName
             if not modelData or not modelData.mdl then return end
 
             local mats = ent:GetMaterials()
+            ApplyPreviewAppearance(ent, sex, modelData, appearanceTable)
+            ApplyPreviewBodygroups(ent, sex, appearanceTable)
 
             -- Применяем все текстуры из slotMap
             for slotMaterial, texturePath in pairs(slotMap) do
@@ -1429,7 +1493,7 @@ local function CreateGlovesIconMenu(parent, currentSelection, onSelectCallback, 
 
             ApplyPreviewAppearance(ent, sexIndex, modelData, editTable)
 
-            local defaultHandsMaterial = (sexIndex == 2) and "models/humans/female/group01/normal" or "models/humans/male/group01/normal"
+            local defaultHandsMaterial = GetDefaultHandsMaterialBySex(sexIndex)
             if modelData.submatSlots and modelData.submatSlots.hands then
                 local handsSlot = modelData.submatSlots.hands
                 for matIndex, modelMatName in ipairs(ent:GetMaterials()) do
@@ -1532,9 +1596,20 @@ local BODYGROUP_PART_CONFIG = {
         bodygroupKey = "sheet",
         cameraPosId = "Torso",
         camera = {
-            camPos = Vector(70, 0, 40),
-            lookAt = Vector(0, 0, 45),
-            fov = 25
+            male = {
+                -- BODYGROUP_JACKET_CAMERA_MALE_START
+                camPos = Vector(70, 0, 40),
+                lookAt = Vector(0, 0, 45),
+                fov = 25
+                -- BODYGROUP_JACKET_CAMERA_MALE_END
+            },
+            female = {
+                -- BODYGROUP_JACKET_CAMERA_FEMALE_START
+                camPos = Vector(68, 0, 39),
+                lookAt = Vector(0, 0, 44),
+                fov = 25
+                -- BODYGROUP_JACKET_CAMERA_FEMALE_END
+            }
         },
         scrollKey = "bodygroup_sheet"
     },
@@ -1543,9 +1618,20 @@ local BODYGROUP_PART_CONFIG = {
         bodygroupKey = "pants",
         cameraPosId = "Legs",
         camera = {
-            camPos = Vector(70, 0, 20),
-            lookAt = Vector(0, 0, 15),
-            fov = 30
+            male = {
+                -- BODYGROUP_PANTS_CAMERA_MALE_START
+                camPos = Vector(70, 0, 20),
+                lookAt = Vector(0, 0, 15),
+                fov = 30
+                -- BODYGROUP_PANTS_CAMERA_MALE_END
+            },
+            female = {
+                -- BODYGROUP_PANTS_CAMERA_FEMALE_START
+                camPos = Vector(68, 0, 19),
+                lookAt = Vector(0, 0, 15),
+                fov = 30
+                -- BODYGROUP_PANTS_CAMERA_FEMALE_END
+            }
         },
         scrollKey = "bodygroup_pants"
     },
@@ -1554,9 +1640,20 @@ local BODYGROUP_PART_CONFIG = {
         bodygroupKey = "shoes",
         cameraPosId = "Boots",
         camera = {
-            camPos = Vector(40, -50, 30),
-            lookAt = Vector(7, 0, 0),
-            fov = 14
+            male = {
+                -- BODYGROUP_BOOTS_CAMERA_MALE_START
+                camPos = Vector(40, -50, 30),
+                lookAt = Vector(7, 0, 0),
+                fov = 14
+                -- BODYGROUP_BOOTS_CAMERA_MALE_END
+            },
+            female = {
+                -- BODYGROUP_BOOTS_CAMERA_FEMALE_START
+                camPos = Vector(39, -50, 28),
+                lookAt = Vector(6, 0, 0),
+                fov = 14
+                -- BODYGROUP_BOOTS_CAMERA_FEMALE_END
+            }
         },
         scrollKey = "bodygroup_shoes"
     }
@@ -1681,9 +1778,10 @@ local function CreateBodygroupIconMenu(parent, partName, currentSelection, onSel
         EnsurePreviewPanelBounds(mdl)
         mdl:SetAnimated(false)
         function mdl:RunAnimation() end
-        mdl:SetCamPos(config.camera.camPos)
-        mdl:SetLookAt(config.camera.lookAt)
-        mdl:SetFOV(config.camera.fov)
+        local cameraConfig = (sexIndex == 2 and config.camera.female) or config.camera.male
+        mdl:SetCamPos(cameraConfig.camPos)
+        mdl:SetLookAt(cameraConfig.lookAt)
+        mdl:SetFOV(cameraConfig.fov)
 
         function mdl:LayoutEntity(ent)
             if not IsValid(ent) then return end

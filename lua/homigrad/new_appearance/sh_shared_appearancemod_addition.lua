@@ -1421,4 +1421,36 @@ hook.Add("PostGamemodeLoaded", "ZCity_LoadCustomAppearance_PostGM", function()
     ZCity_AddAllCustomContent()
 end)
 
+if SERVER then
+    local function PatchAppearanceReset()
+        local appearanceTable = hg.Appearance
+        if not appearanceTable or appearanceTable.__ZCitySubmaterialResetPatched then return end
+        local originalForceApply = appearanceTable.ForceApplyAppearance
+        if not isfunction(originalForceApply) then return end
+
+        appearanceTable.__ZCitySubmaterialResetPatched = true
+        appearanceTable.ForceApplyAppearance = function(ply, tbl, noModelChange)
+            if IsValid(ply) and ply.GetMaterials and ply.SetSubMaterial then
+                local mats = ply:GetMaterials() or {}
+                for i = 1, #mats do
+                    ply:SetSubMaterial(i - 1, nil)
+                end
+            end
+
+            return originalForceApply(ply, tbl, noModelChange)
+        end
+    end
+
+    hook.Add("InitPostEntity", "ZCity_PatchForceApplyAppearanceReset", function()
+        PatchAppearanceReset()
+        timer.Create("ZCity_PatchForceApplyAppearanceResetRetry", 0.5, 20, function()
+            if hg.Appearance and hg.Appearance.__ZCitySubmaterialResetPatched then
+                timer.Remove("ZCity_PatchForceApplyAppearanceResetRetry")
+                return
+            end
+            PatchAppearanceReset()
+        end)
+    end)
+end
+
 print("[ZCityAppearanceMod] Дополнение загружено!")
