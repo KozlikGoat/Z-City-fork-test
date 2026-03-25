@@ -134,6 +134,18 @@ local function FreezePreviewEntity(ent)
     end
 end
 
+local function InstallPreviewFreezeGuard(mdlPanel)
+    if not IsValid(mdlPanel) or mdlPanel.__AppearanceFreezeGuardInstalled then return end
+    mdlPanel.__AppearanceFreezeGuardInstalled = true
+
+    function mdlPanel:Think()
+        local ent = self.Entity
+        if not IsValid(ent) then return end
+        FreezePreviewEntity(ent)
+        ForcePreviewPlayerColor(ent)
+    end
+end
+
 local function EnsurePreviewPanelBounds(mdlPanel)
     if not IsValid(mdlPanel) then return end
 
@@ -147,6 +159,7 @@ local function EnsurePreviewPanelBounds(mdlPanel)
 
     ApplyBounds()
     timer.Simple(0, ApplyBounds)
+    InstallPreviewFreezeGuard(mdlPanel)
 end
 
 local function ResolveModelDataByName(modelName)
@@ -228,6 +241,10 @@ local function ApplySelectedBodygroups(ent, sexIndex, appearanceTable)
             end
         end
     end
+end
+
+local function GetDefaultHandsMaterialBySex(sexIndex)
+    return (sexIndex == 2) and "models/humans/female/group01/normal" or "models/humans/male/group01/normal"
 end
 
 --[[
@@ -357,7 +374,7 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
             Apply("main", clothesMat)
             Apply("pants", clothesMat)
             Apply("boots", clothesMat)
-            Apply("hands", "models/humans/male/group01/normal")
+            Apply("hands", GetDefaultHandsMaterialBySex(sexIndex))
 
             if facemap ~= "Default" then
 
@@ -377,6 +394,7 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
 
             end
 
+            ApplySelectedBodygroups(ent, sexIndex, editTable)
             ent.__AppearanceFrozenShowcase = true
 
         end
@@ -748,7 +766,7 @@ function hg.Appearance.OpenBodygroupsShowcaseMenu(appearanceTable)
     modelPreview:Dock(FILL)
     modelPreview:DockMargin(8, 8, 8, 8)
     modelPreview:SetModel(modelData.mdl)
-    modelPreview:SetCamPos(Vector(85, -20, 46))
+    modelPreview:SetCamPos(Vector(220, -45, 60))
     modelPreview:SetLookAt(Vector(0, 0, 38))
     modelPreview:SetFOV(24)
     modelPreview:SetAnimated(false)
@@ -808,6 +826,25 @@ function hg.Appearance.OpenBodygroupsShowcaseMenu(appearanceTable)
         end
 
         ApplySelectedBodygroups(ent, sexIndex, editTable)
+    end
+
+    local function IsPanelInsideFrame(panelToCheck)
+        while IsValid(panelToCheck) do
+            if panelToCheck == frame then return true end
+            panelToCheck = panelToCheck:GetParent()
+        end
+        return false
+    end
+
+    function frame:OnFocusChanged(gained)
+        if gained then return end
+        timer.Simple(0, function()
+            if not IsValid(self) then return end
+            local focusedPanel = vgui.GetKeyboardFocus()
+            local hoveredPanel = vgui.GetHoveredPanel()
+            if IsPanelInsideFrame(focusedPanel) or IsPanelInsideFrame(hoveredPanel) then return end
+            self:Close()
+        end)
     end
 
     local controlsScroll = CreateStyledScrollPanel(frame)
