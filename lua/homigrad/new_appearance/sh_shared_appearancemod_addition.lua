@@ -51,7 +51,7 @@ local function AddCustomModels()
     end
 
     -- НОВЫЕ МУЖСКИЕ МОДЕЛИ
-    AppAddModel( "Male 10", "models/zcity/m/male_10.mdl", false, {
+    AppAddModel( "Male 10", "models/slav/m/male_10.mdl", false, {
 	    main = "models/humans/male/group01/players_sheet", 
 	    pants = "distac/gloves/pants", 
 	    boots = "distac/gloves/cross", 
@@ -59,56 +59,56 @@ local function AddCustomModels()
     })
 
 
-    AppAddModel( "Male Cohrt", "models/zcity/m/cohrt.mdl", false, {
+    AppAddModel( "Male Cohrt", "models/slav/m/cohrt.mdl", false, {
 	    main = "models/humans/male/group01/players_sheet", 
 	    pants = "distac/gloves/pants", 
 	    boots = "distac/gloves/cross", 
 	    hands = "distac/gloves/hands"
     })
 
-    AppAddModel( "Male Cheaple", "models/zcity/m/cheaple.mdl", false, {
+    AppAddModel( "Male Cheaple", "models/slav/m/cheaple.mdl", false, {
 	    main = "models/humans/male/group01/players_sheet", 
 	    pants = "distac/gloves/pants", 
 	    boots = "distac/gloves/cross", 
 	    hands = "distac/gloves/hands"
     })
 
-    AppAddModel( "Male Eli", "models/zcity/m/eli.mdl", false, {
+    AppAddModel( "Male Eli", "models/slav/m/eli.mdl", false, {
 	    main = "models/humans/male/group01/players_sheet", 
 	    pants = "distac/gloves/pants", 
 	    boots = "distac/gloves/cross", 
 	    hands = "distac/gloves/hands"
     })
 
-    AppAddModel( "Male Barney", "models/zcity/m/barney.mdl", false, {
+    AppAddModel( "Male Barney", "models/slav/m/barney.mdl", false, {
 	    main = "models/humans/male/group01/players_sheet", 
 	    pants = "distac/gloves/pants", 
 	    boots = "distac/gloves/cross", 
 	    hands = "distac/gloves/hands"
     })
 
-    AppAddModel( "Male Bill", "models/zcity/m/bill.mdl", false, {
+    AppAddModel( "Male Bill", "models/slav/m/bill.mdl", false, {
 	    main = "models/humans/male/group01/players_sheet", 
 	    pants = "distac/gloves/pants", 
 	    boots = "distac/gloves/cross", 
 	    hands = "distac/gloves/hands"
     })
 
-    AppAddModel( "Male Travis", "models/zcity/m/travis.mdl", false, {
+    AppAddModel( "Male Travis", "models/slav/m/travis.mdl", false, {
 	    main = "models/humans/male/group01/players_sheet", 
 	    pants = "distac/gloves/pants", 
 	    boots = "distac/gloves/cross", 
 	    hands = "distac/gloves/hands"
     })
 
-    AppAddModel( "Male JohnWick", "models/zcity/m/johnwick.mdl", false, {
+    AppAddModel( "Male JohnWick", "models/slav/m/johnwick.mdl", false, {
 	    main = "models/humans/male/group01/players_sheet", 
 	    pants = "distac/gloves/pants", 
 	    boots = "distac/gloves/cross", 
 	    hands = "distac/gloves/hands"
     })
 
-    AppAddModel( "Male Leet", "models/zcity/m/leet.mdl", false, {
+    AppAddModel( "Male Leet", "models/slav/m/leet.mdl", false, {
 	    main = "models/humans/male/group01/players_sheet", 
 	    pants = "distac/gloves/pants", 
 	    boots = "distac/gloves/cross", 
@@ -116,33 +116,143 @@ local function AddCustomModels()
     })
 
     -- НОВЫЕ ЖЕНСКИЕ МОДЕЛИ
-    AppAddModel( "Female Mossman", "models/zcity/f/mossman.mdl", true, {
+    AppAddModel( "Female Mossman", "models/slav/f/mossman.mdl", true, {
 	    main = "models/humans/female/group01/players_sheet", 
 	    pants = "distac/gloves/pants", 
 	    boots = "distac/gloves/cross", 
 	    hands = "distac/gloves/hands"
     })
 
-    AppAddModel( "Female Zoey", "models/zcity/f/zoey.mdl", true, {
+    AppAddModel( "Female Zoey", "models/slav/f/zoey.mdl", true, {
 	    main = "models/humans/female/group01/players_sheet", 
 	    pants = "distac/gloves/pants", 
 	    boots = "distac/gloves/cross", 
 	    hands = "distac/gloves/hands"
     })
 
-    AppAddModel( "Female BlackMesa", "models/zcity/f/scientist_female.mdl", true, {
+    AppAddModel( "Female BlackMesa", "models/slav/f/scientist_female.mdl", true, {
 	    main = "models/humans/female/group01/players_sheet", 
 	    pants = "distac/gloves/pants", 
 	    boots = "distac/gloves/cross", 
 	    hands = "distac/gloves/hands"
     })
 
-    AppAddModel("Female Rochelle", "models/zcity/f/rochelle.mdl", true, {
+    AppAddModel("Female Rochelle", "models/slav/f/rochelle.mdl", true, {
 	    main = "models/humans/female/group01/players_sheet",
 	    pants = "distac/gloves/pants",
 	    boots = "distac/gloves/cross",
 	    hands = "distac/gloves/hands"
     })
+
+
+	-- ТЕСТ НОВЫХ МОДЕЛЕЙ
+
+	AppAddModel("Female 01", "models/slav/f/female_01.mdl", true, {
+	main = "models/humans/female/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+	})
+
+	AppAddModel("Female 02", "models/slav/f/female_02.mdl", true, {
+	main = "models/humans/female/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+	})
+
+AppAddModel("Female 03", "models/slav/f/female_03.mdl", true, {
+	main = "models/humans/female/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+	})
+
+AppAddModel("Female 04", "models/slav/f/female_04.mdl", true, {
+	main = "models/humans/female/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+	})
+
+AppAddModel("Female 05", "models/slav/f/female_07.mdl", true, {
+	main = "models/humans/female/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+	})
+
+AppAddModel("Female 06", "models/slav/f/female_06.mdl", true, {
+	main = "models/humans/female/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+	})
+
+	AppAddModel("Male 01", "models/slav/m/male_01.mdl", false, {
+	main = "models/humans/male/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+	})
+
+	AppAddModel("Male 02", "models/slav/m/male_02.mdl", false, {
+	main = "models/humans/male/group01/players_sheet", -- забудьте я просто шизик, сделал более удобную штуку
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+})
+
+AppAddModel("Male 03", "models/slav/m/male_03.mdl", false, {
+	main = "models/humans/male/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+})
+
+AppAddModel("Male 04", "models/slav/m/male_04.mdl", false, {
+	main = "models/humans/male/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+})
+
+AppAddModel("Male 05", "models/slav/m/male_05.mdl", false, {
+	main = "models/humans/male/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+})
+
+AppAddModel("Male 06", "models/slav/m/male_06.mdl", false, {
+	main = "models/humans/male/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+})
+
+AppAddModel("Male 07", "models/slav/m/male_07.mdl", false, {
+	main = "models/humans/male/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+})
+
+AppAddModel("Male 08", "models/slav/m/male_08.mdl", false, {
+	main = "models/humans/male/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+})
+
+AppAddModel("Male 09", "models/slav/m/male_09.mdl", false, {
+	main = "models/humans/male/group01/players_sheet",
+	pants = "distac/gloves/pants",
+	boots = "distac/gloves/cross",
+	hands = "distac/gloves/hands"
+})
+
+
 
     -- Обновляем вспомогательную таблицу FuckYouModels (если она используется)
     hg.Appearance.FuckYouModels = hg.Appearance.FuckYouModels or { {}, {} }
@@ -374,6 +484,19 @@ local function AddCustomClothes()
 		epstein = "models/humans/slav/epstein",
 		epstein1 = "models/humans/slav/epstein1",
 
+		camouflage_1 = "models/humans/slav/camo/players_sheet_military_01",
+		camouflage_2 = "models/humans/slav/camo/players_sheet_military_02",
+		camouflage_3 = "models/humans/slav/camo/players_sheet_military_03",
+		camouflage_4 = "models/humans/slav/camo/players_sheet_military_04",
+		camouflage_5 = "models/humans/slav/camo/players_sheet_military_05",
+		camouflage_6 = "models/humans/slav/camo/players_sheet_military_06",
+		camouflage_7 = "models/humans/slav/camo/players_sheet_military_07",
+		camouflage_8 = "models/humans/slav/camo/players_sheet_military_08",
+		camouflage_9 = "models/humans/slav/camo/players_sheet_military_09",
+		camouflage_10 = "models/humans/slav/camo/players_sheet_military_10",
+		camouflage_11 = "models/humans/slav/camo/players_sheet_military_11",
+		camouflage_12 = "models/humans/slav/camo/players_sheet_military_12",
+
 
     }
     for id, path in pairs(maleClothes) do
@@ -426,6 +549,8 @@ local function AddCustomClothes()
 
 		dksclothes6f = "models/humans/slav/dksclothes6",
 		bluecheckshirtf = "models/humans/slav/dobrogradstuff/clothes/bluecheckshirt",
+
+		tanktopf = "models/humans/slav/tanktop_f",
 
     }
     for id, path in pairs(femaleClothes) do
@@ -866,23 +991,23 @@ local function AddCustomFacemaps()
     -- Нужно сделать так:
     -- Сначала убедитесь, что старые фейсмапы загружены (из оригинального файла).
     -- А ЗАТЕМ добавьте новые для тех же моделей:
-    AddFacemap("models/humans/female/group01/naomi_facemap", "Face 7", "models/bloo_ltcom_zel/citizens/facemaps/naomi_facemap_new", "models/zcity/f/female_06.mdl") -- female 05 (07)
+    AddFacemap("models/humans/female/group01/naomi_facemap", "Face 7", "models/bloo_ltcom_zel/citizens/facemaps/naomi_facemap_new", "models/slav/f/female_06.mdl") -- female 05 (07)
     --AddFacemap("models/humans/female/group01/lakeetra_facemap", "Face 7", "models/bloo_ltcom_zel/citizens/facemaps/lakeetra_facemap_new", "models/zcity/f/female_06.mdl") -- female 06
 
     -- Facemaps для НОВЫХ моделей женщин
     local mossmanfacemap = "models/mossman/mossman_face"
 	local mossmanhair = "models/mossman/mossman_hair"
-	AddFacemap(mossmanfacemap,"Default","","models/zcity/f/mossman.mdl") -- Mossman
-	AddFacemap(mossmanhair,"Default","","models/zcity/f/mossman.mdl")
-	AddFacemap(mossmanfacemap,"Face 1","models/humans/slav/mossman/mossman_face")
-	AddFacemap(mossmanhair,"Face 1","models/humans/slav/mossman/mossman_hair")
+	AddFacemap(mossmanfacemap,"Default","","models/slav/f/mossman.mdl") -- Mossman
+	AddFacemap(mossmanhair,"Default","","models/slav/f/mossman.mdl")
+	AddFacemap(mossmanfacemap,"Face 1","models/humans/slav/mossman/mossman_face1")
+	AddFacemap(mossmanhair,"Face 1","models/humans/slav/mossman/mossman_hair1")
 	AddFacemap(mossmanfacemap,"Face 2","models/humans/slav/mossman/mossman_goth_face")
 	AddFacemap(mossmanhair,"Face 2","models/humans/slav/mossman/mossman_goth_hair")
 
 	local zoeyfacemap = "models/humans/slav/zoey/zoey_head"
 	local zoeyhair = "models/humans/slav/zoey/zoey_hair"
-	AddFacemap(zoeyfacemap,"Default","","models/zcity/f/zoey.mdl") -- Zoey
-	AddFacemap(zoeyhair,"Default","","models/zcity/f/zoey.mdl")
+	AddFacemap(zoeyfacemap,"Default","","models/slav/f/zoey.mdl") -- Zoey
+	AddFacemap(zoeyhair,"Default","","models/slav/f/zoey.mdl")
 	AddFacemap(zoeyfacemap,"Face 1","models/humans/slav/zoey/zoey_head_freckles")
 	AddFacemap(zoeyhair,"Face 1","models/humans/slav/zoey/zoey_hair")
 	AddFacemap(zoeyfacemap,"Face 2","models/humans/slav/zoey/zoey_head_goth")
@@ -896,29 +1021,50 @@ local function AddCustomFacemaps()
 
 	local femalebmsfacemap = "models/humans/slav/blackmesa/base_female/base_f_d"
 	local femalebmshair = "models/humans/slav/blackmesa/hair_trans_blonde"
-	AddFacemap(femalebmsfacemap, "Default", "", "models/zcity/f/scientist_female.mdl") -- female black mesa
-	AddFacemap(femalebmshair, "Default", "", "models/zcity/f/scientist_female.mdl")
+	local femalebmsbody = "models/humans/slav/bodygroups/female_body_new"
+
+	AddFacemap(femalebmsfacemap, "Default", "", "models/slav/f/scientist_female.mdl") -- female black mesa
+	AddFacemap(femalebmshair, "Default", "", "models/slav/f/scientist_female.mdl")
+	AddFacemap(femalebmsbody, "Default", "", "models/slav/f/scientist_female.mdl")
+
 	AddFacemap(femalebmsfacemap, "Face 1", "models/humans/slav/blackmesa/base_female/base_f_02_d")
 	AddFacemap(femalebmshair, "Face 1", "models/humans/slav/blackmesa/hair_trans_grey")
+	AddFacemap(femalebmsbody, "Face 1", "models/humans/slav/bodygroups/female_body_new")
+
 	AddFacemap(femalebmsfacemap, "Face 2", "models/humans/slav/blackmesa/base_female/base_f_03_d")
 	AddFacemap(femalebmshair, "Face 2", "models/humans/slav/blackmesa/hair_trans_brown")
+	AddFacemap(femalebmsbody, "Face 2", "models/humans/slav/bodygroups/female_body_new")
+
 	AddFacemap(femalebmsfacemap, "Face 3", "models/humans/slav/blackmesa/base_female/base_f_04_d")
 	AddFacemap(femalebmshair, "Face 3", "models/humans/slav/blackmesa/hair_trans_blonde2")
+	AddFacemap(femalebmsbody, "Face 3", "models/humans/slav/bodygroups/female_body_new")
+
 	AddFacemap(femalebmsfacemap, "Face 4", "models/humans/slav/blackmesa/base_female/base_f_05_d")
 	AddFacemap(femalebmshair, "Face 4", "models/humans/slav/blackmesa/hair_trans_black")
+	AddFacemap(femalebmsbody, "Face 4", "models/humans/slav/bodygroups/female_body_new_b")
+
 	AddFacemap(femalebmsfacemap, "Face 5", "models/humans/slav/blackmesa/base_female/base_f_06_d")
 	AddFacemap(femalebmshair, "Face 5", "models/humans/slav/blackmesa/hair_trans")
+	AddFacemap(femalebmsbody, "Face 5", "models/humans/slav/bodygroups/female_body_new_z")
+
 	AddFacemap(femalebmsfacemap, "Face 6", "models/humans/slav/blackmesa/base_female/base_f_07_d")
 	AddFacemap(femalebmshair, "Face 6", "models/humans/slav/blackmesa/hair_trans_black")
+	AddFacemap(femalebmsbody, "Face 6", "models/humans/slav/bodygroups/female_body_new_b")
+
 	AddFacemap(femalebmsfacemap, "Face Mia", "models/humans/slav/blackmesa/base_female/base_f_mia_d")
 	AddFacemap(femalebmshair, "Face Mia", "models/humans/slav/blackmesa/hair_trans_black")
+	AddFacemap(femalebmsbody, "Face Mia", "models/humans/slav/bodygroups/female_body_new")
+
 	AddFacemap(femalebmsfacemap, "Face Wendy", "models/humans/slav/blackmesa/base_female/base_f_wendy_d")
 	AddFacemap(femalebmshair, "Face Wendy", "models/humans/slav/blackmesa/hair_trans_grey2")
+	AddFacemap(femalebmsbody, "Face Wendy", "models/humans/slav/bodygroups/female_body_new")
+
 	AddFacemap(femalebmsfacemap, "Face Edith", "models/humans/slav/blackmesa/base_female/base_f_edith_d")
 	AddFacemap(femalebmshair, "Face Edith", "models/humans/slav/blackmesa/hair_trans_red")
+	AddFacemap(femalebmsbody, "Face Edith", "models/humans/slav/bodygroups/female_body_new")
 
 	local rochellefacemap = "models/humans/slav/rochelletrs/trs_rochelle_head"
-	AddFacemap(rochellefacemap, "Default", "", "models/zcity/f/rochelle.mdl") -- Rochelle
+	AddFacemap(rochellefacemap, "Default", "", "models/slav/f/rochelle.mdl") -- Rochelle
 	AddFacemap(rochellefacemap, "Face 1", "models/humans/slav/rochelletrs/trs_rochelle_head_1")
 	AddFacemap(rochellefacemap, "Face 2", "models/humans/slav/rochelletrs/trs_rochelle_head_2")
 	AddFacemap(rochellefacemap, "Face 3", "models/humans/slav/rochelletrs/trs_rochelle_head_3")
@@ -930,28 +1076,27 @@ local function AddCustomFacemaps()
 	-- для новых моделей мужчин
 
 	local male10facemap = "models/humans/male/group01/cub_facemap"
-	AddFacemap(male10facemap,"Default","","models/zcity/m/male_10.mdl") -- male 10
+	AddFacemap(male10facemap,"Default","","models/slav/m/male_10.mdl") -- male 10
 	AddFacemap(male10facemap,"Face 1","models/humans/male/group02/cub_facemap")
 	AddFacemap(male10facemap,"Face 2","models/humans/male/group03/cub_facemap")
 	AddFacemap(male10facemap,"Face 3","models/humans/male/group03m/cub_facemap")
 
 	local cohrtfacemap = "models/humans/slav/cohrt/cohrt"
-	AddFacemap(cohrtfacemap, "Default", "","models/zcity/m/cohrt.mdl") -- Cohrt
-	AddFacemap(cohrtfacemap, "Face 1", "models/humans/slav/cohrt/cohrt")
+	AddFacemap(cohrtfacemap, "Default", "","models/slav/m/cohrt.mdl") -- Cohrt
 
 	local cheaplefacemap = "models/gregrogers/warren/gregrogers_warren_facemap"
-	AddFacemap(cheaplefacemap, "Default", "","models/zcity/m/cheaple.mdl") -- Cheaple
+	AddFacemap(cheaplefacemap, "Default", "","models/slav/m/cheaple.mdl") -- Cheaple
 	AddFacemap(cheaplefacemap, "Face 1", "models/gregrogers/warren/gregrogers_warren_facemap_g02")
 	AddFacemap(cheaplefacemap, "Face 2", "models/gregrogers/warren/gregrogers_warren_facemap_g03")
 	AddFacemap(cheaplefacemap, "Face 3", "models/gregrogers/warren/gregrogers_warren_facemap_g03m")
 
 	local elifacemap = "models/eli/eli_tex4z"
-	AddFacemap(elifacemap, "Default", "","models/zcity/m/eli.mdl") -- Eli
+	AddFacemap(elifacemap, "Default", "","models/slav/m/eli.mdl") -- Eli
 	AddFacemap(elifacemap, "Face 1", "models/gang_ballas_boss/gang_ballas_boss_face")
 	AddFacemap(elifacemap, "Face 2", "models/humans/slav/eli/eli_headz")
 
 	local barneyfacemap = "models/humans/slav/barney/barneyface"
-	AddFacemap(barneyfacemap, "Default", "","models/zcity/m/barney.mdl") -- Barney
+	AddFacemap(barneyfacemap, "Default", "","models/slav/m/barney.mdl") -- Barney
 	AddFacemap(barneyfacemap, "Face 1", "models/humans/slav/barney/donaldface")
 
 	local billcig = "models/humans/slav/bill/bill_head"
@@ -959,11 +1104,11 @@ local function AddCustomFacemaps()
 	local billhairs2 = "models/humans/slav/bill/bill_hairs2"
 	local billbeard = "models/humans/slav/bill/bill_hair"
 	local billface = "models/humans/slav/bill/bill_head_nohat"
-	AddFacemap(billcig, "Default", "","models/zcity/m/bill.mdl") -- Bill
-	AddFacemap(billhairs, "Default", "","models/zcity/m/bill.mdl")
-	AddFacemap(billhairs2, "Default", "","models/zcity/m/bill.mdl")
-	AddFacemap(billbeard, "Default", "","models/zcity/m/bill.mdl")
-	AddFacemap(billface, "Default", "","models/zcity/m/bill.mdl")
+	AddFacemap(billcig, "Default", "","models/slav/m/bill.mdl") -- Bill
+	AddFacemap(billhairs, "Default", "","models/slav/m/bill.mdl")
+	AddFacemap(billhairs2, "Default", "","models/slav/m/bill.mdl")
+	AddFacemap(billbeard, "Default", "","models/slav/m/bill.mdl")
+	AddFacemap(billface, "Default", "","models/slav/m/bill.mdl")
 
 	AddFacemap(billcig, "No Cig", "null")
 	AddFacemap(billhairs, "No Cig", "models/humans/slav/bill/bill_hairs")
@@ -997,15 +1142,129 @@ local function AddCustomFacemaps()
 
 
 	local travisfacemap = "models/humans/slav/travis/trav_facemap"
-	AddFacemap(travisfacemap, "Default", "","models/zcity/m/travis.mdl") -- Travis
+	AddFacemap(travisfacemap, "Default", "","models/slav/m/travis.mdl") -- Travis
 	AddFacemap(travisfacemap, "Face 1", "models/humans/slav/travis/trav_facemap1")
 	AddFacemap(travisfacemap, "Face 2", "models/humans/slav/travis/trav_facemap2")
 
 	local johnwickfacemap = "models/humans/slav/johnwick/wick_head"
-	AddFacemap(johnwickfacemap, "Default", "","models/zcity/m/johnwick.mdl") -- John Wick
+	AddFacemap(johnwickfacemap, "Default", "","models/slav/m/johnwick.mdl") -- John Wick
 
 	local leetfacemap = "models/cstrike/t_leet"
-	AddFacemap(leetfacemap, "Default", "","models/zcity/m/leet.mdl") -- Leet
+	AddFacemap(leetfacemap, "Default", "","models/slav/m/leet.mdl") -- Leet
+
+
+	-- ТЕСТОВЫЕ фейсмапы
+
+	-- ЖЕНЩИНЫ
+
+	local female01testfacemap = "models/humans/female/group01/joey_facemap"
+	AddFacemap(female01testfacemap, "Default", "", "models/slav/f/female_01.mdl") -- female 01
+	AddFacemap(female01testfacemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/joey_facemap")
+	for i = 2, 6 do
+		AddFacemap(female01testfacemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/joey_facemap" .. i)
+	end
+
+	local female02testfacemap = "models/humans/female/group01/kanisha_cylmap"
+	AddFacemap(female02testfacemap, "Default", "", "models/slav/f/female_02.mdl") -- female 02
+	AddFacemap(female02testfacemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/kanisha_cylmap")
+	for i = 2, 6 do
+		AddFacemap(female02testfacemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/kanisha_cylmap" .. i)
+	end
+
+	local female03testfacemap = "models/humans/female/group01/kim_facemap"
+	AddFacemap(female03testfacemap, "Default", "", "models/slav/f/female_03.mdl") -- female 03
+	AddFacemap(female03testfacemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/kim_facemap")
+	AddFacemap(female03testfacemap, "Face " .. 5, "models/bloo_ltcom_zel/citizens/facemaps/kim_facemap" .. 6)
+	for i = 2, 4 do
+		AddFacemap(female03testfacemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/kim_facemap" .. i)
+	end
+
+	local female04testfacemap = "models/humans/female/group01/chau_facemap"
+	AddFacemap(female04testfacemap, "Default", "", "models/slav/f/female_04.mdl") -- female 04
+	AddFacemap(female04testfacemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/chau_facemap")
+	for i = 2, 5 do
+		AddFacemap(female04testfacemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/chau_facemap" .. i)
+	end
+
+	local female05testfacemap = "models/humans/female/group01/lakeetra_facemap"
+	AddFacemap(female05testfacemap, "Default", "", "models/slav/f/female_07.mdl") -- female 05 -- why it's female 07... idk dude
+	AddFacemap(female05testfacemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/lakeetra_facemap")
+	for i = 2, 6 do
+		AddFacemap(female05testfacemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/lakeetra_facemap" .. i)
+	end
+
+	local female06testfacemap = "models/humans/female/group01/naomi_facemap"
+	AddFacemap(female06testfacemap, "Default", "", "models/slav/f/female_06.mdl") -- female 06
+	AddFacemap(female06testfacemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/naomi_facemap")
+	for i = 2, 5 do
+		AddFacemap(female06testfacemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/naomi_facemap" .. i)
+	end
+
+
+	-- МУЖЧИНЫ
+
+	local male01testfacemap = "models/humans/male/group01/van_facemap"
+	AddFacemap(male01testfacemap, "Default", "", "models/slav/m/male_01.mdl") -- male 01
+	AddFacemap(male01testfacemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/van_facemap")
+	for i = 2, 8 do
+		AddFacemap(male01testfacemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/van_facemap" .. i)
+	end
+
+	local male02facemap = "models/humans/male/group01/ted_facemap"
+	AddFacemap(male02facemap, "Default", "", "models/slav/m/male_02.mdl") -- male 02
+	AddFacemap(male02facemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/ted_facemap")
+	for i = 2, 10 do
+		AddFacemap(male02facemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/ted_facemap" .. i)
+	end
+
+	local male03facemap = "models/humans/male/group01/joe_facemap"
+	AddFacemap(male03facemap, "Default", "", "models/slav/m/male_03.mdl") -- male 03
+	AddFacemap(male03facemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/joe_facemap")
+	for i = 2, 9 do
+		AddFacemap(male03facemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/joe_facemap" .. i)
+	end
+
+	local male04facemap = "models/humans/male/group01/eric_facemap"
+	AddFacemap(male04facemap, "Default", "", "models/slav/m/male_04.mdl") -- male 04
+	AddFacemap(male04facemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/eric_facemap")
+	for i = 2, 9 do
+		AddFacemap(male04facemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/eric_facemap" .. i)
+	end
+
+	local male05facemap = "models/humans/male/group01/art_facemap"
+	AddFacemap(male05facemap, "Default", "", "models/slav/m/male_05.mdl") -- male 05
+	AddFacemap(male05facemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/art_facemap")
+	for i = 2, 9 do
+		AddFacemap(male05facemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/art_facemap" .. i)
+	end
+
+	local male06facemap = "models/humans/male/group01/sandro_facemap"
+	AddFacemap(male06facemap, "Default", "", "models/slav/m/male_06.mdl") -- male 06
+	AddFacemap(male06facemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/sandro_facemap")
+	for i = 2, 10 do
+		AddFacemap(male06facemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/sandro_facemap" .. i)
+	end
+
+	local male07facemap = "models/humans/male/group01/mike_facemap"
+	AddFacemap(male07facemap, "Default", "", "models/slav/m/male_07.mdl") -- male 07
+	AddFacemap(male07facemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/mike_facemap")
+	for i = 2, 8 do
+		AddFacemap(male07facemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/mike_facemap" .. i)
+	end
+
+	local male08facemap = "models/humans/male/group01/vance_facemap"
+	AddFacemap(male08facemap, "Default", "", "models/slav/m/male_08.mdl") -- male 08
+	AddFacemap(male08facemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/vance_facemap")
+	for i = 2, 9 do
+		AddFacemap(male08facemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/vance_facemap" .. i)
+	end
+
+	local male09facemap = "models/humans/male/group01/erdim_cylmap"
+	AddFacemap(male09facemap, "Default", "", "models/slav/m/male_09.mdl") -- male 09
+	AddFacemap(male09facemap, "Face 1", "models/bloo_ltcom_zel/citizens/facemaps/erdim_facemap")
+	for i = 2, 11 do
+		AddFacemap(male09facemap, "Face " .. i, "models/bloo_ltcom_zel/citizens/facemaps/erdim_facemap" .. i)
+	end
 
 
 
@@ -1076,6 +1335,55 @@ local function AddCustomBodygroups()
 	AppAddBodygroup("HANDS", "Mitten wool", "mittenwool_M", false, true, true, 300, "models/zcity/gloves/degloves.mdl", 8, nil)
 	AppAddBodygroup("HANDS", "Mitten wool", "mittenwool_F", true, true, true, 300, "models/zcity/gloves/degloves.mdl", 8, nil)
     -- ... и так далее
+
+
+	-- ТЕСТОВЫЕ БОДИГРУППЫ
+
+	-- МУЖСКИЕ БОДИГРУППЫ
+
+	-- Верхняя одежда (sheet)
+	AppAddBodygroup("sheet", "Standard", "sheet_m", false, false, false, 0, nil, 0)
+	AppAddBodygroup("sheet", "T-Shirt", "sheet_tshirt_m", false, false, false, 0, nil, 1)
+	AppAddBodygroup("sheet", "Hoodie", "sheet_hood_m", false, false, false, 0, nil, 2)
+	AppAddBodygroup("sheet", "Closed", "sheet_closed_m", false, false, false, 0, nil, 3)
+	AppAddBodygroup("sheet", "Odessa", "sheet_odessa_m", false, false, false, 0, nil, 4)
+	AppAddBodygroup("sheet", "Wide", "sheet_wide_m", false, false, false, 0, nil, 5)
+	AppAddBodygroup("sheet", "Wide Jacket", "sheet_wide_jacket_m", false, false, false, 0, nil, 6)
+
+	-- Штаны (pants)
+	AppAddBodygroup("pants", "Standard", "pants_m", false, false, false, 0, nil, 0)
+	AppAddBodygroup("pants", "Wide", "pants_wide_m", false, false, false, 0, nil, 1)
+	AppAddBodygroup("pants", "Shorts", "shorts_m", false, false, false, 0, nil, 2)
+	AppAddBodygroup("pants", "Army", "army_pants_m", false, false, false, 0, nil, 3)
+
+	-- Обувь (shoes)
+	AppAddBodygroup("shoes", "Standard", "shoes_m", false, false, false, 0, nil, 0)
+	AppAddBodygroup("shoes", "Sneakers", "shoes_02_m", false, false, false, 0, nil, 1)
+	AppAddBodygroup("shoes", "High Top", "shoes_03_m", false, false, false, 0, nil, 2)
+	AppAddBodygroup("shoes", "Army", "army_boots_m", false, false, false, 0, nil, 3)
+
+	-- ЖЕНСКИЕ БОДИГРУППЫ
+
+	-- Верхняя одежда (sheet)
+	AppAddBodygroup("sheet", "Standard", "sheet_f", true, false, false, 0, nil, 0)
+	AppAddBodygroup("sheet", "T-Shirt", "sheet_tshirt_f", true, false, false, 0, nil, 1)
+	AppAddBodygroup("sheet", "Wide", "sheet_wide_f", true, false, false, 0, nil, 2)
+	AppAddBodygroup("sheet", "Mossman", "sheet_mossman_f", true, false, false, 0, nil, 3)
+	AppAddBodygroup("sheet", "Tank Top", "tanktop_f", true, false, false, 0, nil, 3)
+
+	-- Штаны (pants)
+	AppAddBodygroup("pants", "Standard", "pants_f", true, false, false, 0, nil, 0)
+	AppAddBodygroup("pants", "Skinny", "pants_02_f", true, false, false, 0, nil, 1)
+	AppAddBodygroup("pants", "Shorts", "shorts_f", true, false, false, 0, nil, 1)
+
+	-- Обувь (shoes)
+	AppAddBodygroup("shoes", "Standard Shoes", "shoes_f", true, false, false, 0, nil, 0)
+	AppAddBodygroup("shoes", "Ballet Flats", "shoes_02_f", true, false, false, 0, nil, 1)
+
+
+
+
+
 end
 
 
@@ -1097,10 +1405,15 @@ local function ZCity_AddAllCustomContent()
     AddCustomModels()
     AddCustomClothes()
     AddCustomFacemaps()
+	AddCustomBodygroups()
 end
 
 
 hook.Add("InitPostEntity", "ZCity_LoadCustomAppearance", function()
+    ZCity_AddAllCustomContent()
+end)
+
+hook.Add("OnGamemodeLoaded", "ZCity_LoadCustomAppearance", function()
     ZCity_AddAllCustomContent()
 end)
 
