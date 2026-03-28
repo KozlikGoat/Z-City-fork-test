@@ -14,7 +14,7 @@ hg.PointShop = hg.PointShop or {}
 -- НЕ переопределяем PLUGIN.Items
 
 hg.Appearance.MenuPerf = hg.Appearance.MenuPerf or {
-    showcaseCols = 14,
+    showcaseCols = 12,
     allFacemapsCols = 14,
     allFacemapsHeaderGapFactor = 0.43,
     clothesCols = 4,

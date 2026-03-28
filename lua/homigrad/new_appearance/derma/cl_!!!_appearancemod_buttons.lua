@@ -1938,6 +1938,113 @@ local function ModelHasFacemapName(modelPath, facemapName)
     return slotVariants and slotVariants[facemapName] ~= nil or false
 end
 
+local function GetAvailableFacemapNamesForModel(modelPath)
+    if not modelPath then return {} end
+
+    local namesSet = {}
+    local modelKey = string.lower(modelPath)
+
+    local multi = hg.Appearance.MultiFacemaps and hg.Appearance.MultiFacemaps[modelKey]
+    if multi then
+        for facemapName in pairs(multi) do
+            namesSet[facemapName] = true
+        end
+    end
+
+    local slot = hg.Appearance.FacemapsModels and hg.Appearance.FacemapsModels[modelKey]
+    local slotVariants = slot and hg.Appearance.FacemapsSlots and hg.Appearance.FacemapsSlots[slot]
+    if slotVariants then
+        for facemapName in pairs(slotVariants) do
+            namesSet[facemapName] = true
+        end
+    end
+
+    local names = table.GetKeys(namesSet)
+    table.sort(names)
+    return names
+end
+
+local function PickRandomListValue(values)
+    if not values or #values <= 0 then return nil end
+    return values[math.random(#values)]
+end
+
+local function PickRandomKey(sourceTable)
+    if not sourceTable or table.IsEmpty(sourceTable) then return nil end
+    local keys = table.GetKeys(sourceTable)
+    if #keys <= 0 then return nil end
+    table.sort(keys)
+    return keys[math.random(#keys)]
+end
+
+local function ApplyRandomAppearanceSelection(editTable)
+    if not editTable then return false end
+
+    editTable.AClothes = editTable.AClothes or {}
+    editTable.ABodygroups = editTable.ABodygroups or {}
+
+    local modelNames = {}
+    for sexIndex = 1, 2 do
+        for modelName, modelData in pairs(hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[sexIndex] or {}) do
+            if modelData and modelData.mdl then
+                modelNames[#modelNames + 1] = modelName
+            end
+        end
+    end
+
+    local randomModelName = PickRandomListValue(modelNames)
+    if not randomModelName then return false end
+
+    editTable.AModel = randomModelName
+
+    local modelData = (hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[1] and hg.Appearance.PlayerModels[1][randomModelName])
+        or (hg.Appearance.PlayerModels and hg.Appearance.PlayerModels[2] and hg.Appearance.PlayerModels[2][randomModelName])
+    if not modelData then return false end
+
+    local sexIndex = modelData.sex and 2 or 1
+    local clothesBySex = hg.Appearance.Clothes and hg.Appearance.Clothes[sexIndex] or {}
+    editTable.AClothes.main = PickRandomKey(clothesBySex) or editTable.AClothes.main or "normal"
+    editTable.AClothes.pants = PickRandomKey(clothesBySex) or editTable.AClothes.pants or "normal"
+    editTable.AClothes.boots = PickRandomKey(clothesBySex) or editTable.AClothes.boots or "normal"
+
+    for partName, config in pairs(BODYGROUP_PART_CONFIG) do
+        local bodygroupsBySex = config and ResolveBodygroupCatalogByKey(config.bodygroupKey, sexIndex)
+        local chosenVariant = PickRandomKey(bodygroupsBySex)
+        if chosenVariant then
+            editTable.ABodygroups[config.bodygroupKey] = chosenVariant
+            local uppercaseKey = string.upper(config.bodygroupKey)
+            local lowercaseKey = string.lower(config.bodygroupKey)
+            editTable.ABodygroups[uppercaseKey] = chosenVariant
+            editTable.ABodygroups[lowercaseKey] = chosenVariant
+
+            if partName == "main" then
+                editTable.ABodygroups.sheet = chosenVariant
+            elseif partName == "pants" then
+                editTable.ABodygroups.pants = chosenVariant
+            elseif partName == "boots" then
+                editTable.ABodygroups.shoes = chosenVariant
+            end
+        end
+    end
+
+    local handsBySex = hg.Appearance.Bodygroups and hg.Appearance.Bodygroups.HANDS and hg.Appearance.Bodygroups.HANDS[sexIndex]
+    local randomHands = PickRandomKey(handsBySex)
+    if randomHands then
+        editTable.ABodygroups.HANDS = randomHands
+        editTable.ABodygroups.hands = randomHands
+    end
+
+    local facemapNames = GetAvailableFacemapNamesForModel(modelData.mdl)
+    local randomFacemap = PickRandomListValue(facemapNames)
+    editTable.AFacemap = randomFacemap or "Default"
+
+    if randomFacemap and hg.Appearance.QueueDelayedFacemapApply then
+        hg.Appearance.QueueDelayedFacemapApply(editTable, randomModelName, randomFacemap)
+    end
+
+    return true
+end
+
 local function QueueDelayedFacemapApply(editTable, modelName, facemapName)
     if not editTable or not modelName or not facemapName then return end
 
@@ -2326,6 +2433,69 @@ local function ModifyAppearanceMenu(panel)
         panel.BodygroupsBtn = bodygroupsBtn
     end
 
+    if not IsValid(panel.RandomizeAppearanceBtn) then
+        local randomizeBtn = vgui.Create("DButton", panel)
+        randomizeBtn:SetText("")
+        randomizeBtn:SetFont("ZCity_Tiny")
+        randomizeBtn.IconMaterial = Material("icon16/arrow_refresh.png", "smooth")
+
+        function randomizeBtn:Think()
+            if not IsValid(panel) then return end
+
+            local targetSize = math.floor(ScreenScale(11))
+            local foundAnchor = false
+            if panel.GetChildren then
+                for _, child in ipairs(panel:GetChildren()) do
+                    if IsValid(child) and child.__AppearanceBodygroupButton then
+                        targetSize = child.__AppearanceBodygroupButton:GetTall()
+                        foundAnchor = targetSize > 0
+                        break
+                    end
+                end
+            end
+
+            if not foundAnchor and IsValid(panel.BodygroupsBtn) then
+                targetSize = panel.BodygroupsBtn:GetTall()
+            end
+
+            self:SetSize(targetSize, targetSize)
+
+            local margin = ScreenScale(6)
+            self:SetPos(margin, panel:GetTall() - self:GetTall() - margin)
+        end
+
+        function randomizeBtn:Paint(w, h)
+            draw.RoundedBox(4, 0, 0, w, h, colors.secondary)
+            surface.SetDrawColor(colors.scrollbarBorder)
+            surface.DrawOutlinedRect(0, 0, w, h, 1)
+
+            if self.IconMaterial then
+                local size = math.max(8, math.floor(h * 0.62))
+                local pad = math.floor((h - size) * 0.5)
+                surface.SetMaterial(self.IconMaterial)
+                surface.SetDrawColor(235, 235, 245, 255)
+                surface.DrawTexturedRect(pad, pad, size, size)
+            end
+        end
+
+        function randomizeBtn:DoClick()
+            local editTable = EnsureAppearanceTableDefaults(panel)
+            if not editTable then return end
+
+            local applied = ApplyRandomAppearanceSelection(editTable)
+            if not applied then
+                notification.AddLegacy("Random appearance options are unavailable", NOTIFY_ERROR, 3)
+                return
+            end
+
+            SyncModelSelectorCombo(panel, editTable.AModel)
+            panel.modelPosID = "All"
+            surface.PlaySound("player/weapon_draw_0" .. math.random(2, 5) .. ".wav")
+        end
+
+        panel.RandomizeAppearanceBtn = randomizeBtn
+    end
+
     ------------------------------------------------------
     ------------------------------------------------------
 
@@ -2397,7 +2567,7 @@ local function ModifyAppearanceMenu(panel)
         sideButton:SetTall(baseButton:GetTall())
         sideButton:SetWide(baseButton:GetTall())
 
-        sideButton.IconMaterial = sideButton.IconMaterial or Material("icon64/playermodel.png", "smooth")
+        sideButton.IconMaterial = sideButton.IconMaterial or Material("icon16/cog.png", "smooth")
         sideButton.__AppearanceBodygroupPart = part
 
         function sideButton:Paint(w, h)
