@@ -731,7 +731,7 @@ local pickupWhiteList = {
 }
 
 function SWEP:CanPickup(ent)
-	if ent:IsNPC() then return false end
+	if ent:IsNPC() or ent:IsNextBot() then return false end
 	if ent:IsPlayer() then return false end
 	if ent:IsWorld() then return false end
 	local class = ent:GetClass()

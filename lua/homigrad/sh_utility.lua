@@ -716,7 +716,8 @@ local IsValid = IsValid
 	function IsLookingAt(ply, targetVec, floatDiff)
 		if not IsValid(ply) or not ply:IsPlayer() then return false end
 		local diff = targetVec - ply:GetShootPos()
-		return ply:GetAimVector():Dot(diff) / diff:Length() >= (floatDiff or 0.8)
+		local val = ply:GetAimVector():Dot(diff) / diff:Length()
+		return val >= (floatDiff or 0.8), val
 	end
 --//
 --\\ Custom Hull check

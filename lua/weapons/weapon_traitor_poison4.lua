@@ -256,7 +256,7 @@ function SWEP:DoPoison(ent)
 end
 
 if SERVER then
-    hook.Add("Org Clear", "RemovePoison2", function(org)
+    hook.Add("Org Clear", "RemovePoison4", function(org)
         org.poison4 = nil
 		org.poison4notificate = nil
     end)
