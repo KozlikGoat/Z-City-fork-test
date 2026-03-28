@@ -3,8 +3,8 @@ if SERVER then return end
 
 hg.Appearance = hg.Appearance or {}
 
-local SHOWCASE_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.showcaseCols) or 15
-local FACEMAP_COLS = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.allFacemapsCols) or 15
+local SHOWCASE_COLS_AT_1080P = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.showcaseCols) or 12
+local FACEMAP_COLS_AT_1080P = (hg.Appearance.MenuPerf and hg.Appearance.MenuPerf.allFacemapsCols) or 14
 
 -- увеличенные иконки
 local ICON_W = 150
@@ -21,6 +21,41 @@ local uiColors = {
     border = Color(100, 100, 120, 200),
     sliderBg = Color(18, 18, 24, 235)
 }
+
+local function CalculateFloatingColumnCount(containerWidth, itemWidth, desiredColsAt1080p)
+    local safeItemWidth = math.max(itemWidth or 1, 1)
+    local desired = math.max(math.floor(desiredColsAt1080p or 1), 1)
+
+    local effectiveWidth = math.max(containerWidth or 0, safeItemWidth)
+    local baselineItemWidth = math.max(math.floor(1920 / desired), safeItemWidth)
+
+    local widthBasedCols = math.max(math.floor((effectiveWidth + 2) / safeItemWidth), 1)
+    local scaledCols = math.max(math.floor((effectiveWidth / baselineItemWidth) + 0.5), 1)
+
+    return math.max(math.min(widthBasedCols, scaledCols), 1)
+end
+
+local function ConfigureShowcaseGridColumns(grid, containerWidth)
+    if not IsValid(grid) then return end
+
+    local columnWidth = ICON_W + 8
+    local cols = CalculateFloatingColumnCount(containerWidth, columnWidth, SHOWCASE_COLS_AT_1080P)
+
+    grid:SetCols(cols)
+    grid:SetColWide(columnWidth)
+end
+
+local function ConfigureFacemapGridColumns(grid, containerWidth, iconSize, iconSpacing)
+    if not IsValid(grid) then return 1 end
+
+    local columnWidth = iconSize + iconSpacing
+    local cols = CalculateFloatingColumnCount(containerWidth, columnWidth, FACEMAP_COLS_AT_1080P)
+
+    grid:SetCols(cols)
+    grid:SetColWide(columnWidth)
+
+    return cols
+end
 
 local function CreateStyledScrollPanel(parent)
     local scroll = vgui.Create("DScrollPanel", parent)
@@ -281,9 +316,13 @@ function hg.Appearance.OpenShowcaseMenu(appearanceTable)
 
     local grid = vgui.Create("DGrid", scroll)
     grid:Dock(TOP)
-    grid:SetCols(SHOWCASE_COLS)
-    grid:SetColWide(ICON_W + 8)
+    ConfigureShowcaseGridColumns(grid, scroll:GetWide() - 8)
     grid:SetRowHeight(ICON_H + 8) -- было +26
+
+    function grid:Think()
+        if not IsValid(scroll) then return end
+        ConfigureShowcaseGridColumns(self, scroll:GetWide() - 8)
+    end
 
     local editTable = appearanceTable or hg.Appearance.CurrentEditTable
     if not editTable then return end
@@ -676,7 +715,9 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
         table.sort(sortedNames)
 
         local section = vgui.Create("DPanel")
-        local rowsCount = math.max(math.ceil(#sortedNames / FACEMAP_COLS), 1)
+        local sectionWidth = math.max(scroll:GetWide() - 10, 300)
+        local initialCols = CalculateFloatingColumnCount(sectionWidth - 12, iconSize + iconSpacing, FACEMAP_COLS_AT_1080P)
+        local rowsCount = math.max(math.ceil(#sortedNames / initialCols), 1)
         local rowHeight = iconSize + 18 + iconSpacing
         section:SetSize(math.max(ScrW() - 24, 300), FACEMAP_SECTION_HEADER_PAD + (rowsCount * rowHeight) + 12)
 
@@ -689,15 +730,23 @@ function hg.Appearance.OpenAllFacemapsMenu(appearanceTable)
 
         local row = vgui.Create("DGrid", section)
         row:SetPos(6, FACEMAP_SECTION_HEADER_PAD)
-        row:SetCols(FACEMAP_COLS)
-        row:SetColWide(iconSize + iconSpacing)
+        ConfigureFacemapGridColumns(row, section:GetWide() - 12, iconSize, iconSpacing)
         row:SetRowHeight(iconSize + 18 + iconSpacing)
 
         function section:Think()
             if not IsValid(scroll) then return end
             local targetW = math.max(scroll:GetWide() - 10, 300)
-            if self:GetWide() ~= targetW then
+            local widthChanged = self:GetWide() ~= targetW
+            if widthChanged then
                 self:SetWide(targetW)
+            end
+
+            local cols = ConfigureFacemapGridColumns(row, targetW - 12, iconSize, iconSpacing)
+            local rows = math.max(math.ceil(#sortedNames / cols), 1)
+            local rowHeight = iconSize + 18 + iconSpacing
+            local targetH = FACEMAP_SECTION_HEADER_PAD + (rows * rowHeight) + 12
+            if self:GetTall() ~= targetH then
+                self:SetTall(targetH)
             end
         end
 
